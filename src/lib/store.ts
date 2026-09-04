@@ -31,7 +31,13 @@ type AppState = {
   setCalendarYear: (year: number) => void;
 };
 
-const addis = PLACES[0] ?? { lat: 9.03, lng: 38.74, label: "Addis Ababa" };
+const addis: Geo = {
+  lat: PLACES[0]?.lat ?? 9.03,
+  lng: PLACES[0]?.lng ?? 38.74,
+  label: PLACES[0]?.label ?? "Addis Ababa",
+  timeZone: PLACES[0]?.timeZone ?? "Africa/Addis_Ababa",
+  source: "guess",
+};
 
 export const useAppStore = create<AppState>()(
   persist(

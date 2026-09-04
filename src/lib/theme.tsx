@@ -11,10 +11,15 @@ type ThemeContextValue = {
 
 const ThemeContext = createContext<ThemeContextValue>({ resolved: "gold", isAuto: true });
 
-function resolveNow(mode: "auto" | "gold" | "silver", lat: number, lng: number): ResolvedTheme {
+function resolveNow(
+  mode: "auto" | "gold" | "silver",
+  lat: number,
+  lng: number,
+  timeZone?: string,
+): ResolvedTheme {
   if (mode === "gold" || mode === "silver") return mode;
   try {
-    return isDaytime(new Date(), lat, lng) ? "gold" : "silver";
+    return isDaytime(new Date(), lat, lng, timeZone) ? "gold" : "silver";
   } catch {
     const h = new Date().getHours();
     return h >= 6 && h < 18 ? "gold" : "silver";
@@ -25,15 +30,15 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const mode = useAppStore((s) => s.themeMode);
   const place = useAppStore((s) => s.place);
   const [resolved, setResolved] = useState<ResolvedTheme>(() =>
-    resolveNow(mode, place.lat, place.lng),
+    resolveNow(mode, place.lat, place.lng, place.timeZone),
   );
 
   useEffect(() => {
-    const apply = () => setResolved(resolveNow(mode, place.lat, place.lng));
+    const apply = () => setResolved(resolveNow(mode, place.lat, place.lng, place.timeZone));
     apply();
     const id = window.setInterval(apply, 60_000);
     return () => window.clearInterval(id);
-  }, [mode, place.lat, place.lng]);
+  }, [mode, place.lat, place.lng, place.timeZone]);
 
   useEffect(() => {
     const root = document.documentElement;

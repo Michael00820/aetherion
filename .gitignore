@@ -18,6 +18,3 @@ artifacts
 screenshots/*.png
 screenshots/*.jpg
 screenshots/*.json
-.grok/skills
-.grok/references
-.grok/favicon-*.png

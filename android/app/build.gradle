@@ -33,6 +33,7 @@ android {
     buildTypes {
         release {
             minifyEnabled false
+            shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             if (keystorePropertiesFile.exists()) {
                 signingConfig signingConfigs.release
@@ -47,6 +48,14 @@ android {
         jniLibs {
             useLegacyPackaging = false
         }
+        resources {
+            excludes += ['META-INF/DEPENDENCIES', 'META-INF/LICENSE', 'META-INF/LICENSE.txt', 'META-INF/NOTICE', 'META-INF/NOTICE.txt']
+        }
+    }
+    lint {
+        abortOnError false
+        checkReleaseBuilds false
+        disable 'InvalidPackage', 'OldTargetApi'
     }
 }
 
@@ -69,6 +78,21 @@ dependencies {
 }
 
 apply from: 'capacitor.build.gradle'
+
+gradle.taskGraph.whenReady { graph ->
+    def wantsSigned = graph.allTasks.any { t ->
+        t.name == 'bundleRelease' || t.name == 'assembleRelease' || t.name == 'packageReleaseBundle'
+    }
+    if (wantsSigned && !keystorePropertiesFile.exists()) {
+        throw new GradleException(
+            "Signed Play builds need android/keystore.properties.\n" +
+            "1. From the repo root run: ./scripts/create-upload-keystore.sh\n" +
+            "2. Copy android/keystore.properties.example to android/keystore.properties\n" +
+            "3. Fill storePassword and keyPassword\n" +
+            "Never commit the JKS or keystore.properties."
+        )
+    }
+}
 
 try {
     def servicesJSON = file('google-services.json')

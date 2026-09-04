@@ -22,5 +22,10 @@ Built with TanStack Start, React, Three.js, and Tailwind.
 
 ## Android / Play Store
 
-The `android` folder is an Android Studio project (`com.aetherion.observatory`). See [ANDROID.md](ANDROID.md) for the signed AAB steps, and `play/` for the Console icon, feature graphic, and listing copy.
+Open the **`android`** folder in Android Studio. Application id: `com.aetherion.observatory`.
 
+1. `npm install && npm run android:web && npx cap sync android`
+2. `./scripts/create-upload-keystore.sh` (once; keep the JKS private)
+3. `cd android && ./gradlew bundleRelease`
+
+Full signed-AAB and Play Console steps: [ANDROID.md](ANDROID.md). Listing assets: [play/](play/). Privacy policy for GitHub Pages: [docs/privacy.html](docs/privacy.html).

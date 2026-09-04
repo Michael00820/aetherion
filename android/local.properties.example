@@ -1,3 +1,11 @@
 ## Copy to local.properties (never commit the copy).
-## Android Studio writes this automatically when you open the project.
+## Android Studio writes sdk.dir automatically when you open android/.
+##
+## macOS:
+##   sdk.dir=/Users/YOU/Library/Android/sdk
+## Linux:
+##   sdk.dir=/home/YOU/Android/Sdk
+## Windows:
+##   sdk.dir=C:\\Users\\YOU\\AppData\\Local\\Android\\Sdk
+
 sdk.dir=/Users/YOU/Library/Android/sdk

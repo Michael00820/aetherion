@@ -1,0 +1,2 @@
+const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["assets/web-B7XSBouY.js","assets/index.android-5gr_DD84.js","assets/rolldown-runtime-hePW80VL.js","assets/jsx-runtime-DNVbGL5L.js","assets/index-83-JP-G3.css"])))=>i.map(i=>d[i]);
+import{n as e,o as t}from"./index.android-5gr_DD84.js";var n=t(`SplashScreen`,{web:()=>e(()=>import(`./web-B7XSBouY.js`).then(e=>new e.SplashScreenWeb),__vite__mapDeps([0,1,2,3,4]))});export{n as SplashScreen};

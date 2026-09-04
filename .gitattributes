@@ -1,0 +1,8 @@
+# Keep the Gradle wrapper and binaries intact on Windows checkouts.
+android/gradle/wrapper/gradle-wrapper.jar binary
+*.png binary
+*.jpg binary
+*.woff2 binary
+*.jks binary
+gradlew text eol=lf
+*.bat text eol=crlf

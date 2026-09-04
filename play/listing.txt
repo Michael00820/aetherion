@@ -1,4 +1,4 @@
-App name
+App name (30 characters max)
 Aetherion
 
 Short description (80 characters max)
@@ -12,20 +12,13 @@ Aetherion is a pocket observatory for the Ethiopian Orthodox calendar, unequal p
 • Hours — twelve unequal hours of day from your sunrise, twelve of night from sunset, in the Chaldean order.
 • Scripture — the Tewahedo library. Open any book at chapter 1. Swipe between chapters. Search Ge'ez, Amharic, and English.
 
-Themes follow the sun: gold by day, silver by night. Location is optional and stays on the device, used only to time the local horizon.
+Themes follow the sun: gold by day, silver by night. Location is optional and stays on the device, used only to time the local horizon. No account. No ads.
 
 Category
-Books & Reference  or  Lifestyle
+Books & Reference
 
-Content rating
-Everyone
-
-Privacy policy
-Host public/privacy.html at a public URL (GitHub Pages is enough) and paste that URL in Play Console → App content → Privacy policy.
-
-Data safety
-• Location: approximate, optional, on-device only (planetary hours).
-• No account, no ads, no data sale.
+Tags
+ethiopian, orthodox, calendar, astronomy, bible, planetary hours, orrery
 
 Contact
 https://github.com/Michael00820/aetherion

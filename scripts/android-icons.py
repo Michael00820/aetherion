@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
-ROOT = Path("/workspace")
+ROOT = Path(__file__).resolve().parents[1]
 RES = ROOT / "android" / "app" / "src" / "main" / "res"
 PLAY = ROOT / "play"
 BG = (20, 17, 12, 255)
@@ -29,7 +29,6 @@ def disc(size: int, pad_ratio: float = 0.18) -> Image.Image:
         d.ellipse(box, outline=col, width=w)
     core = r_out * 0.22
     d.ellipse([cx - core, cy - core, cx + core, cy + core], fill=GOLD)
-    # crescent
     d.arc(
         [cx + r_out * 0.08, cy - r_out * 0.78, cx + r_out * 0.92, cy + r_out * 0.08],
         start=200,
@@ -71,8 +70,7 @@ def launcher_set() -> None:
         fg = disc(px, pad_ratio=0.22)
         save_png(fg, RES / f"mipmap-{name}" / "ic_launcher_foreground.png")
 
-    bg_xml = RES / "drawable" / "ic_launcher_background.xml"
-    bg_xml.write_text(
+    (RES / "drawable" / "ic_launcher_background.xml").write_text(
         """<?xml version="1.0" encoding="utf-8"?>
 <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
     <solid android:color="#14110C" />
@@ -90,6 +88,7 @@ def launcher_set() -> None:
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
     <background android:drawable="@color/ic_launcher_background" />
     <foreground android:drawable="@mipmap/ic_launcher_foreground" />
+    <monochrome android:drawable="@mipmap/ic_launcher_foreground" />
 </adaptive-icon>
 """
     (RES / "mipmap-anydpi-v26" / "ic_launcher.xml").write_text(adaptive)
@@ -119,6 +118,10 @@ def splash_set() -> None:
         img.alpha_composite(sig, (x, y))
         save_png(img, RES / folder / "splash.png")
 
+    # Android 12+ splash icon (circular mask). Transparent, not a full-screen bitmap.
+    icon = disc(960, pad_ratio=0.18)
+    save_png(icon, RES / "drawable" / "splash_icon.png")
+
 
 def play_set() -> None:
     PLAY.mkdir(parents=True, exist_ok=True)
@@ -126,14 +129,15 @@ def play_set() -> None:
     icon.alpha_composite(disc(512, pad_ratio=0.14))
     save_png(icon, PLAY / "icon-512.png")
 
-    feat = Image.new("RGBA", (1024, 500), BG)
-    d = ImageDraw.Draw(feat)
-    # wash
+    # Play rejects feature graphics that carry an alpha channel.
+    feat = Image.new("RGB", (1024, 500), (20, 17, 12))
+    overlay = Image.new("RGBA", (1024, 500), (0, 0, 0, 0))
+    d = ImageDraw.Draw(overlay)
     for i in range(220):
         a = int(28 * (1 - i / 220))
         d.ellipse([420 - i, -80 - i / 2, 980 + i, 420 + i], outline=(201, 162, 39, a))
     sig = disc(280, pad_ratio=0.16)
-    feat.alpha_composite(sig, (70, 110))
+    overlay.alpha_composite(sig, (70, 110))
     try:
         font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf", 72)
         small = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 22)
@@ -142,7 +146,9 @@ def play_set() -> None:
         small = font
     d.text((390, 168), "AETHERION", fill=INK, font=font)
     d.text((390, 268), "Observatory of Ethiopian time", fill=GOLD_SOFT, font=small)
-    save_png(feat, PLAY / "feature-graphic.png")
+    feat.paste(Image.alpha_composite(Image.new("RGBA", feat.size, (20, 17, 12, 255)), overlay).convert("RGB"))
+    PLAY.joinpath("feature-graphic.png").parent.mkdir(parents=True, exist_ok=True)
+    feat.save(PLAY / "feature-graphic.png", "PNG")
 
 
 def main() -> None:

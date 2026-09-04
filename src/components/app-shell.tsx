@@ -1,13 +1,9 @@
 import { BookOpen, CalendarDays, Clock3, Moon, Orbit, Sun } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ComponentType } from "react";
 import { dateToEthiopian, formatEthiopian, formatEthiopianTime, MONTHS } from "@/lib/ethiopian-calendar";
 import { useAppStore, type PanelId } from "@/lib/store";
 import { useTheme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
-import { OrbitsPanel } from "@/components/solar/orbits-panel";
-import { EthiopianCalendar } from "@/components/calendar/ethiopian-calendar";
-import { PlanetaryHours } from "@/components/hours/planetary-hours";
-import { ScriptureReader } from "@/components/bible/scripture-reader";
 import { Button } from "@/components/ui/button";
 
 const NAV: { id: PanelId; label: string; am: string; icon: typeof Orbit }[] = [
@@ -17,6 +13,13 @@ const NAV: { id: PanelId; label: string; am: string; icon: typeof Orbit }[] = [
   { id: "scripture", label: "Scripture", am: "መጽሐፍ", icon: BookOpen },
 ];
 
+const loaders: Record<PanelId, () => Promise<ComponentType>> = {
+  orbits: () => import("@/components/solar/orbits-panel").then((m) => m.OrbitsPanel),
+  zemen: () => import("@/components/calendar/ethiopian-calendar").then((m) => m.EthiopianCalendar),
+  hours: () => import("@/components/hours/planetary-hours").then((m) => m.PlanetaryHours),
+  scripture: () => import("@/components/bible/scripture-reader").then((m) => m.ScriptureReader),
+};
+
 export function AppShell() {
   const panel = useAppStore((s) => s.panel);
   const setPanel = useAppStore((s) => s.setPanel);
@@ -24,11 +27,18 @@ export function AppShell() {
   const setThemeMode = useAppStore((s) => s.setThemeMode);
   const { resolved } = useTheme();
   const [clock, setClock] = useState(() => new Date());
+  const [panes, setPanes] = useState<Partial<Record<PanelId, ComponentType>>>({});
 
   useEffect(() => {
     const id = window.setInterval(() => setClock(new Date()), 1000);
     return () => window.clearInterval(id);
   }, []);
+
+  useEffect(() => {
+    void loaders[panel]().then((C) => {
+      setPanes((s) => (s[panel] ? s : { ...s, [panel]: C }));
+    });
+  }, [panel]);
 
   const eth = dateToEthiopian(clock);
   const month = MONTHS[eth.month - 1];
@@ -39,8 +49,8 @@ export function AppShell() {
   }
 
   return (
-    <div className="starfield flex min-h-dvh flex-col text-fg">
-      <header className="flex items-center gap-3 border-b border-border px-3 py-2.5 sm:px-5">
+    <div className="starfield flex h-dvh max-h-dvh flex-col overflow-hidden text-fg">
+      <header className="flex h-14 shrink-0 items-center gap-3 border-b border-border px-3 sm:h-16 sm:px-5">
         <div className="flex min-w-0 items-center gap-3">
           <Sigil gold={resolved === "gold"} />
           <div className="min-w-0">
@@ -88,11 +98,28 @@ export function AppShell() {
       </header>
 
       <main className="flex min-h-0 flex-1 flex-col p-3 pb-[4.75rem] md:p-4 md:pb-4">
-        <div className={cn("flex min-h-0 flex-1 flex-col", panel !== "orbits" && "overflow-hidden")}>
-          {panel === "orbits" ? <OrbitsPanel /> : null}
-          {panel === "zemen" ? <EthiopianCalendar /> : null}
-          {panel === "hours" ? <PlanetaryHours /> : null}
-          {panel === "scripture" ? <ScriptureReader /> : null}
+        <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
+          {NAV.map((item) => {
+            const Pane = panes[item.id];
+            const on = panel === item.id;
+            if (!Pane && on) {
+              return (
+                <div key={item.id} className="flex flex-1 items-center justify-center text-muted">
+                  Loading {item.label}…
+                </div>
+              );
+            }
+            if (!Pane) return null;
+            return (
+              <div
+                key={item.id}
+                className={cn("min-h-0 flex-1 flex-col", on ? "flex" : "hidden")}
+                hidden={!on}
+              >
+                <Pane />
+              </div>
+            );
+          })}
         </div>
       </main>
 

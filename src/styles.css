@@ -1,281 +1,265 @@
-@import "tailwindcss";
-
-@font-face {
-  font-family: "Aether Display";
-  src: url("/fonts/cormorant-500.woff2") format("woff2");
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Aether Display";
-  src: url("/fonts/cormorant-600.woff2") format("woff2");
-  font-weight: 600;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Aether Sans";
-  src: url("/fonts/source-400.woff2") format("woff2");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Aether Sans";
-  src: url("/fonts/source-600.woff2") format("woff2");
-  font-weight: 600;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Aether Geez";
-  src: url("/fonts/ethiopic-400.woff2") format("woff2");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
+.sky-glass {
+  margin: 0 12px 12px;
+  padding: 18px 18px 16px;
+  border-radius: 20px;
+  background: color-mix(in oklab, var(--surface) 78%, transparent);
+  border: 1px solid color-mix(in oklab, var(--fg) 12%, transparent);
+  box-shadow:
+    var(--shadow-border),
+    0 18px 40px rgb(0 0 0 / 0.28);
+  backdrop-filter: blur(18px) saturate(1.2);
+  max-height: 42%;
+  overflow-y: auto;
 }
 
-@theme {
-  --font-sans: "Aether Sans", "Figtree", "Segoe UI", system-ui, sans-serif;
-  --font-display: "Aether Display", "Cormorant Garamond", Georgia, serif;
-  --font-ethiopic: "Aether Geez", "Noto Sans Ethiopic", serif;
-
-  --color-bg: var(--bg);
-  --color-fg: var(--fg);
-  --color-muted: var(--muted);
-  --color-subtle: var(--subtle);
-  --color-surface: var(--surface);
-  --color-raised: var(--raised);
-  --color-border: var(--border);
-  --color-accent: var(--accent);
-  --color-accent-fg: var(--accent-fg);
-  --color-glow: var(--glow);
-  --color-ring: var(--ring);
-  --color-danger: #b4533a;
-
-  --radius-xs: 4px;
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 18px;
-  --radius-xl: 24px;
+.zemen-page {
+  --paper: #faf6ef;
+  --ink: #2b2118;
+  --rule: #7a3b12;
+  --warm: #a8763f;
+  --line: #d8c9b0;
+  --cell: #fdfaf3;
+  --cell-line: #ecdfc7;
+  color: var(--ink);
+  background: var(--paper);
+  border-radius: 16px;
+  padding: 18px 16px 28px;
 }
 
-:root,
-html[data-theme="gold"] {
-  --bg: #14110c;
-  --fg: #f3ead7;
-  --muted: #b8a078;
-  --subtle: #8a734c;
-  --surface: #1c160e;
-  --raised: #261e12;
-  --border: color-mix(in oklab, #f3ead7 14%, transparent);
-  --accent: #c9a227;
-  --accent-fg: #1a140c;
-  --glow: color-mix(in oklab, #c9a227 28%, transparent);
-  --ring: #e4c56a;
-  --shadow-border: 0 0 0 1px color-mix(in oklab, #f3ead7 10%, transparent);
-  --shadow-border-hover: 0 0 0 1px color-mix(in oklab, #c9a227 42%, transparent);
-  color-scheme: dark;
+html[data-theme="silver"] .zemen-page {
+  --paper: #eef1f6;
+  --ink: #1a1e28;
+  --rule: #4a5568;
+  --warm: #6e7786;
+  --line: #c5cdd8;
+  --cell: #f7f8fb;
+  --cell-line: #d7dde6;
 }
 
-html[data-theme="silver"] {
-  --bg: #0c0e12;
-  --fg: #e8eaf0;
-  --muted: #9aa3b2;
-  --subtle: #6e7786;
-  --surface: #12151c;
-  --raised: #1a1e28;
-  --border: color-mix(in oklab, #e8eaf0 13%, transparent);
-  --accent: #c5cdd8;
-  --accent-fg: #0c0e12;
-  --glow: color-mix(in oklab, #c5cdd8 24%, transparent);
-  --ring: #d7dde6;
-  --shadow-border: 0 0 0 1px color-mix(in oklab, #e8eaf0 10%, transparent);
-  --shadow-border-hover: 0 0 0 1px color-mix(in oklab, #c5cdd8 40%, transparent);
-  color-scheme: dark;
-}
-
-@layer base {
-  html {
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    background: var(--bg);
-    color: var(--fg);
-  }
-
-  body {
-    margin: 0;
-    min-height: 100dvh;
-    background: var(--bg);
-    color: var(--fg);
-    font-family: var(--font-sans);
-    line-height: 1.5;
-  }
-
-  h1,
-  h2,
-  h3,
-  h4 {
-    font-family: var(--font-display);
-    text-wrap: balance;
-    letter-spacing: -0.03em;
-    line-height: 1.15;
-    font-weight: 600;
-  }
-
-  button:not(:disabled),
-  [role="button"]:not(:disabled) {
-    cursor: pointer;
-  }
-
-  * {
-    border-color: var(--border);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
-.font-ethiopic {
-  font-family: var(--font-ethiopic), var(--font-sans);
-}
-
-.panel-enter {
-  animation: panel-in 400ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-@keyframes panel-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.starfield {
-  background:
-    radial-gradient(1200px 500px at 20% -10%, var(--glow), transparent 55%),
-    radial-gradient(800px 400px at 90% 0%, color-mix(in oklab, var(--accent) 8%, transparent), transparent 50%),
-    var(--bg);
-}
-
-input[type="range"].speed-range {
-  appearance: none;
-  height: 4px;
-  border-radius: 999px;
-  background: color-mix(in oklab, var(--fg) 16%, transparent);
-  outline: none;
-}
-
-input[type="range"].speed-range::-webkit-slider-thumb {
-  appearance: none;
-  width: 16px;
-  height: 16px;
-  border-radius: 999px;
-  background: var(--accent);
-  box-shadow: 0 0 0 4px var(--glow);
-}
-
-.scroll-thin {
-  scrollbar-width: thin;
-  scrollbar-color: color-mix(in oklab, var(--accent) 40%, transparent) transparent;
-}
-
-.hour-row {
-  display: grid;
-  grid-template-columns: 2.2rem 2rem 1fr auto;
-  grid-template-areas:
-    "num glyph name time"
-    ". . track track";
-  align-items: center;
-  column-gap: 8px;
-  padding: 14px 16px;
-  border-top: 1px solid var(--border);
-  background: var(--surface);
-}
-
-.hour-row.night {
-  background: color-mix(in oklab, var(--fg) 7%, var(--raised));
-}
-
-.hour-row.current {
-  font-style: italic;
-  font-weight: 600;
-}
-
-.hour-num {
-  grid-area: num;
-  font-size: 1.05rem;
-}
-
-.hour-glyph {
-  grid-area: glyph;
-  font-family: var(--font-display);
-  font-size: 1.35rem;
-  line-height: 1;
-}
-
-.hour-name {
-  grid-area: name;
-  font-size: 1.05rem;
-}
-
-.hour-time {
-  grid-area: time;
-  font-size: 0.92rem;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-  color: var(--muted);
-}
-
-.hour-row.current .hour-time {
-  color: var(--fg);
-}
-
-.hour-track {
-  grid-area: track;
-  display: grid;
-  grid-template-columns: auto 1fr auto auto;
-  gap: 8px;
-  align-items: center;
-  margin-top: 8px;
-  font-size: 11px;
-  font-style: normal;
-  font-weight: 400;
-  color: var(--subtle);
-}
-
-.hour-bar {
-  height: 2px;
-  background: color-mix(in oklab, var(--fg) 16%, transparent);
-  border-radius: 999px;
-  overflow: hidden;
-}
-
-.hour-bar i {
-  display: block;
-  height: 100%;
-  background: var(--accent);
-}
-
-.nav-chip {
+.zemen-toolbar {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 48px;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.zemen-year {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  min-width: 7rem;
+  text-align: center;
+}
+
+.zemen-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--cell);
+  color: var(--ink);
+}
+
+.zemen-title {
+  text-align: center;
+  margin-bottom: 22px;
+  border-bottom: 3px double var(--rule);
+  padding-bottom: 14px;
+}
+
+.zemen-title h1 {
+  font-size: 1.75rem;
+  margin: 0 0 4px;
+  color: var(--rule);
+  letter-spacing: 0.04em;
+}
+
+.zemen-title p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: color-mix(in oklab, var(--ink) 70%, transparent);
+}
+
+.zemen-months {
+  columns: 1;
+  column-gap: 18px;
+}
+
+@media (min-width: 860px) {
+  .zemen-months {
+    columns: 2;
+  }
+}
+
+.zemen-month {
+  break-inside: avoid;
+  margin-bottom: 18px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 12px 12px 10px;
+  background: color-mix(in oklab, var(--paper) 40%, white);
+}
+
+.zemen-month-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+}
+
+.zemen-month-head h2 {
+  margin: 0;
+  font-size: 1.15rem;
+  color: var(--rule);
+}
+
+.zemen-geez {
+  font-family: var(--font-ethiopic);
+  font-size: 0.92em;
+  color: var(--warm);
+  font-weight: 400;
+}
+
+.zemen-range {
+  margin: 0;
+  font-size: 0.72rem;
+  color: color-mix(in oklab, var(--ink) 55%, transparent);
+  text-align: right;
+}
+
+.zemen-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+}
+
+.zemen-dow {
+  text-align: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--warm);
+  padding: 3px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.zemen-cell {
+  position: relative;
+  aspect-ratio: 1 / 0.78;
+  border: 1px solid var(--cell-line);
+  border-radius: 3px;
+  padding: 3px 4px;
+  text-align: right;
+  background: var(--cell);
+  color: var(--ink);
+  min-height: 42px;
+}
+
+.zemen-cell.blank {
+  border: none;
+  background: transparent;
+  pointer-events: none;
+}
+
+.zemen-cell .eth-day {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.zemen-cell .greg-day {
+  display: block;
+  font-size: 8.5px;
+  color: color-mix(in oklab, var(--ink) 48%, transparent);
+}
+
+.zemen-cell.today {
+  outline: 2px solid var(--rule);
+  outline-offset: -1px;
+}
+
+.zemen-cell.feast .eth-day {
+  color: var(--rule);
+}
+
+.feast-dot {
+  position: absolute;
+  left: 5px;
+  bottom: 5px;
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--rule);
+}
+
+.zemen-foot {
+  text-align: center;
+  font-size: 11px;
+  color: color-mix(in oklab, var(--ink) 55%, transparent);
+  margin: 8px 8px 12px;
+}
+
+.zemen-sheet-back {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgb(0 0 0 / 0.45);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 12px;
+}
+
+.zemen-sheet {
+  position: relative;
+  width: min(32rem, 100%);
+  max-height: 70dvh;
+  overflow-y: auto;
+  border-radius: 18px 18px 12px 12px;
+  padding: 22px 20px 20px;
+  background: var(--paper);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  box-shadow: 0 18px 40px rgb(0 0 0 / 0.28);
+}
+
+.zemen-sheet h3 {
+  margin: 4px 0 8px;
+  font-size: 1.8rem;
+  color: var(--rule);
+}
+
+.zemen-sheet-meta {
+  margin: 0 0 8px;
+  font-size: 0.9rem;
+  color: color-mix(in oklab, var(--ink) 65%, transparent);
+}
+
+.zemen-feast {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  color: var(--rule);
+}
+
+.zemen-sheet-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 40px;
+  height: 40px;
   border: 0;
-  border-radius: 12px;
-  background: var(--accent);
-  color: var(--accent-fg);
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--ink) 8%, transparent);
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

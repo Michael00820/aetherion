@@ -179,6 +179,8 @@ export type Feast = {
 export const FIXED_FEASTS: Feast[] = [
   { month: 1, day: 1, name: "Enkutatash", amharic: "እንቁጣጣሽ", note: "Ethiopian New Year — the gift of jewels" },
   { month: 1, day: 17, name: "Meskel", amharic: "መስቀል", note: "Finding of the True Cross" },
+  { month: 3, day: 21, name: "Tsion Maryam", amharic: "ጽዮን ማርያም", note: "St. Mary of Zion" },
+  { month: 4, day: 19, name: "Lideta", amharic: "ልደታ", note: "Nativity of the Virgin Mary" },
   { month: 4, day: 29, name: "Genna", amharic: "ገና", note: "Nativity of Christ" },
   { month: 5, day: 11, name: "Timkat", amharic: "ጥምቀት", note: "Epiphany — baptism of Christ" },
   { month: 6, day: 8, name: "Kulel", amharic: "ኩለል", note: "Presentation / Kudus Simeon" },
@@ -269,6 +271,11 @@ export function formatEthiopian(d: EthDate, script: "latin" | "amharic" = "latin
   if (!month) return `${d.day}/${d.month}/${d.year}`;
   if (script === "amharic") return `${month.amharic} ${d.day}፣ ${d.year}`;
   return `${month.name} ${d.day}, ${d.year}`;
+}
+
+export function formatGregorianShort(d: GregDate): string {
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  return `${months[d.month - 1]} ${d.day}`;
 }
 
 export function formatGregorian(d: GregDate): string {

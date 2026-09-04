@@ -1,6 +1,8 @@
 import * as THREE from "three";
 import type { PlanetId } from "@/lib/planets";
 
+const cache = new Map<string, THREE.CanvasTexture>();
+
 function noise(x: number, y: number): number {
   const n = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453;
   return n - Math.floor(n);
@@ -19,11 +21,29 @@ function tex(c: HTMLCanvasElement): THREE.CanvasTexture {
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
   t.anisotropy = 4;
+  t.wrapS = THREE.RepeatWrapping;
+  t.wrapT = THREE.ClampToEdgeWrapping;
   t.needsUpdate = true;
   return t;
 }
 
-export function makePlanetTexture(id: PlanetId): THREE.CanvasTexture {
+export function getPlanetTexture(id: PlanetId): THREE.CanvasTexture {
+  const hit = cache.get(id);
+  if (hit) return hit;
+  const made = makePlanetTexture(id);
+  cache.set(id, made);
+  return made;
+}
+
+export function getRingTexture(): THREE.CanvasTexture {
+  const hit = cache.get("rings");
+  if (hit) return hit;
+  const made = makeRingTexture();
+  cache.set("rings", made);
+  return made;
+}
+
+function makePlanetTexture(id: PlanetId): THREE.CanvasTexture {
   if (id === "sun") return sunTex();
   if (id === "earth") return earthTex();
   if (id === "jupiter") return bandTex(["#c9a36a", "#a87840", "#e0c48a", "#8c5a32", "#d4b078"], 1.4);
@@ -132,7 +152,7 @@ function cloudy(a: string, b: string): THREE.CanvasTexture {
   return tex(c);
 }
 
-export function makeRingTexture(): THREE.CanvasTexture {
+function makeRingTexture(): THREE.CanvasTexture {
   const [c, ctx] = canvas(512, 64);
   for (let x = 0; x < 512; x++) {
     const t = x / 512;
@@ -145,4 +165,25 @@ export function makeRingTexture(): THREE.CanvasTexture {
   t.wrapS = THREE.ClampToEdgeWrapping;
   t.wrapT = THREE.ClampToEdgeWrapping;
   return t;
+}
+
+export function atmosphereColor(id: PlanetId): string | null {
+  switch (id) {
+    case "earth":
+      return "#6ea8ff";
+    case "venus":
+      return "#f0d2a0";
+    case "mars":
+      return "#c45a32";
+    case "jupiter":
+      return "#d4b078";
+    case "saturn":
+      return "#e6d8a8";
+    case "uranus":
+      return "#9ec8d0";
+    case "neptune":
+      return "#4a7cff";
+    default:
+      return null;
+  }
 }

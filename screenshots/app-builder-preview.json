@@ -1,0 +1,36 @@
+{
+  "url": "http://127.0.0.1:8080/",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "Aetherion",
+      "hasCanvas": false,
+      "bodyTextLen": 271,
+      "bodyTextHash": "7bf4625dd7691e41b2ae20599ab760c6798ca188e1bda2bfe8552ffa77a0f4e3",
+      "bodyTextPrefix": "AETHERION A living orrery of the Ethiopian cosmos ሰማያት ይነግሩ ስብሐተ",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "Aetherion",
+      "hasCanvas": false,
+      "bodyTextLen": 271,
+      "bodyTextHash": "7bf4625dd7691e41b2ae20599ab760c6798ca188e1bda2bfe8552ffa77a0f4e3",
+      "bodyTextPrefix": "AETHERION A living orrery of the Ethiopian cosmos ሰማያት ይነግሩ ስብሐተ",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/app-builder-preview.json"
+}

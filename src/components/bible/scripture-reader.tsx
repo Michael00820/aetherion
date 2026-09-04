@@ -1,6 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
 import { ChevronLeft, ChevronRight, Search } from "lucide-react";
-import { BOOKS, CANON_INDEX, getBook, matchCanonName, searchScripture } from "@/lib/bible/books";
+import { CATALOG, CANON_GROUPS, getCanon, neighbor } from "@/lib/bible/catalog";
+import { hasTraditional, loadBook, nextLocation, prefetchNeighbors, searchScripture } from "@/lib/bible/load";
+import type { Book, Verse } from "@/lib/bible/types";
 import { SECTION_LABELS } from "@/lib/bible/types";
 import { translateChapter } from "@/lib/translate";
 import { useAppStore } from "@/lib/store";
@@ -13,29 +15,49 @@ const cacheKey = (book: string, chapter: number, target: string) =>
 export function ScriptureReader() {
   const lang = useAppStore((s) => s.scriptureLang);
   const setLang = useAppStore((s) => s.setScriptureLang);
-  const [bookId, setBookId] = useState(BOOKS[0]?.id ?? "genesis");
-  const book = getBook(bookId) ?? BOOKS[0];
-  const [chapterNum, setChapterNum] = useState(book?.chapters[0]?.number ?? 1);
-  const chapter = book?.chapters.find((c) => c.number === chapterNum) ?? book?.chapters[0];
-  const [verseNum, setVerseNum] = useState(chapter?.verses[0]?.n ?? 1);
+  const [bookId, setBookId] = useState(CATALOG[0]?.id ?? "genesis");
+  const meta = getCanon(bookId) ?? CATALOG[0]!;
+  const [chapterNum, setChapterNum] = useState(1);
+  const [verseNum, setVerseNum] = useState(1);
+  const [book, setBook] = useState<Book | null>(null);
+  const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
+  const [slide, setSlide] = useState(0);
   const [ai, setAi] = useState<{ status: "idle" | "loading" | "done" | "error"; text: string; error?: string }>({
     status: "idle",
     text: "",
   });
   const [aiTarget, setAiTarget] = useState<"en" | "am">("en");
   const jump = useRef(false);
+  const touch = useRef<{ x: number; y: number } | null>(null);
+  const readerRef = useRef<HTMLElement | null>(null);
 
-  const hits = useMemo(() => searchScripture(query), [query]);
+  const chapter = book?.chapters.find((c) => c.number === chapterNum) ?? book?.chapters[0];
+
+  useEffect(() => {
+    let live = true;
+    setLoading(true);
+    void loadBook(bookId).then((loaded) => {
+      if (!live) return;
+      setBook(loaded ?? null);
+      setLoading(false);
+      prefetchNeighbors(bookId);
+    });
+    return () => {
+      live = false;
+    };
+  }, [bookId]);
 
   useEffect(() => {
     if (!jump.current || !chapter) return;
     jump.current = false;
-    const exists = chapter.verses.some((v) => v.n === verseNum);
-    const n = exists ? verseNum : (chapter.verses[0]?.n ?? 1);
+    const n = chapter.verses.some((v) => v.n === verseNum) ? verseNum : (chapter.verses[0]?.n ?? 1);
     const el = document.getElementById(`v-${bookId}-${chapter.number}-${n}`);
     el?.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [bookId, chapter, verseNum]);
+
+  const hits = useMemo(() => searchScripture(query, book), [query, book]);
+  const traditionalReady = chapter ? hasTraditional(chapter.verses) : false;
 
   const traditional = useMemo(() => {
     if (!chapter) return "";
@@ -53,35 +75,49 @@ export function ScriptureReader() {
     return chapter.verses.map((v) => `${v.n} ${v.en}`).join("\n\n");
   }, [chapter]);
 
-  function goTo(nextBook: string, nextChapter: number, nextVerse?: number) {
-    const b = getBook(nextBook);
-    const ch = b?.chapters.find((c) => c.number === nextChapter) ?? b?.chapters[0];
-    jump.current = true;
+  function goTo(nextBook: string, nextChapter: number, nextVerse = 1, dir: -1 | 0 | 1 = 0) {
+    const nextMeta = getCanon(nextBook);
+    const ch = Math.min(Math.max(1, nextChapter), nextMeta?.chapters ?? 1);
+    jump.current = nextVerse > 1;
+    if (dir) setSlide(dir);
     setBookId(nextBook);
-    setChapterNum(ch?.number ?? 1);
-    setVerseNum(nextVerse ?? ch?.verses[0]?.n ?? 1);
+    setChapterNum(ch);
+    setVerseNum(nextVerse);
     setAi({ status: "idle", text: "" });
     setQuery("");
+    if (nextVerse <= 1) {
+      requestAnimationFrame(() => readerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+    }
   }
 
   function stepChapter(dir: -1 | 1) {
-    if (!book) return;
-    const idx = book.chapters.findIndex((c) => c.number === chapter?.number);
-    const next = book.chapters[idx + dir];
-    if (next) {
-      goTo(book.id, next.number);
-      return;
-    }
-    const bi = BOOKS.findIndex((b) => b.id === book.id);
-    const nb = BOOKS[bi + dir];
-    if (!nb) return;
-    const ch = dir === 1 ? nb.chapters[0] : nb.chapters[nb.chapters.length - 1];
-    if (ch) goTo(nb.id, ch.number);
+    const loc = nextLocation(meta, chapterNum, dir);
+    goTo(loc.id, loc.chapter, 1, dir);
+  }
+
+  useEffect(() => {
+    if (!slide) return;
+    const t = window.setTimeout(() => setSlide(0), 280);
+    return () => window.clearTimeout(t);
+  }, [slide]);
+
+  function onPointerDown(e: PointerEvent) {
+    touch.current = { x: e.clientX, y: e.clientY };
+  }
+  function onPointerUp(e: PointerEvent) {
+    if (!touch.current) return;
+    const dx = e.clientX - touch.current.x;
+    const dy = e.clientY - touch.current.y;
+    touch.current = null;
+    if (Math.abs(dx) < 56 || Math.abs(dx) < Math.abs(dy) * 1.15) return;
+    // swipe/scroll right (finger moves right) → next chapter, as requested
+    if (dx > 0) stepChapter(1);
+    else stepChapter(-1);
   }
 
   async function runTranslate() {
-    if (!book || !chapter) return;
-    const key = cacheKey(book.id, chapter.number, aiTarget);
+    if (!meta || !chapter) return;
+    const key = cacheKey(meta.id, chapter.number, aiTarget);
     const cached = localStorage.getItem(key);
     if (cached) {
       setAi({ status: "done", text: cached });
@@ -92,7 +128,7 @@ export function ScriptureReader() {
       const source = traditional || english;
       const result = await translateChapter({
         data: {
-          book: book.nameEn,
+          book: meta.nameEn,
           chapter: chapter.number,
           sourceLang: "am",
           targetLang: aiTarget,
@@ -114,14 +150,19 @@ export function ScriptureReader() {
     }
   }
 
+  const shownLang = lang === "dual" && !traditionalReady ? "english" : lang;
+  const nextMeta = neighbor(bookId, 1);
+  const prevMeta = neighbor(bookId, -1);
+
   return (
     <div className="panel-enter mx-auto w-full max-w-6xl px-1 pb-10">
       <header className="rounded-xl bg-surface p-5 shadow-[var(--shadow-border)]">
         <p className="text-xs uppercase tracking-[0.2em] text-subtle">Mazhaf — the books</p>
         <h2 className="mt-2 font-display text-4xl">Ethiopian Orthodox Tewahedo scripture</h2>
         <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted">
-          Choose a book, chapter, and verse. Search Ge'ez, Amharic, or English. Traditional text
-          keeps the liturgical line; English follows the public-domain renderings.
+          Every listed book opens at chapter 1, verse 1. Scroll down through verses. Swipe right for
+          the next chapter, swipe left for the previous — at the end of a book the next book begins,
+          and so on around the canon.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
           {(
@@ -153,7 +194,7 @@ export function ScriptureReader() {
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search books and verses — e.g. light, መጀመሪያ, Genesis 1:3"
+            placeholder="Search books and verses — e.g. Exodus, light, John 1:1"
             className="h-12 w-full rounded-lg border border-border bg-raised pl-10 pr-3 text-sm"
             aria-label="Search scripture"
           />
@@ -181,7 +222,7 @@ export function ScriptureReader() {
           </ul>
         ) : null}
 
-        <div className="mt-3 grid grid-cols-[auto_1fr_auto_auto] gap-2 sm:grid-cols-[auto_minmax(0,1.4fr)_auto_auto]">
+        <div className="mt-3 grid grid-cols-[auto_1fr_auto_auto] gap-2">
           <button type="button" className="nav-chip" aria-label="Previous chapter" onClick={() => stepChapter(-1)}>
             <ChevronLeft className="size-4" />
           </button>
@@ -189,13 +230,10 @@ export function ScriptureReader() {
             className="mazhaf-select min-w-0"
             value={bookId}
             aria-label="Book"
-            onChange={(e) => {
-              const b = getBook(e.target.value);
-              goTo(e.target.value, b?.chapters[0]?.number ?? 1);
-            }}
+            onChange={(e) => goTo(e.target.value, 1, 1)}
           >
             {(Object.keys(SECTION_LABELS) as Array<keyof typeof SECTION_LABELS>).map((section) => {
-              const group = BOOKS.filter((b) => b.section === section);
+              const group = CATALOG.filter((b) => b.section === section);
               if (group.length === 0) return null;
               return (
                 <optgroup key={section} label={SECTION_LABELS[section].en}>
@@ -210,13 +248,13 @@ export function ScriptureReader() {
           </select>
           <select
             className="mazhaf-select w-[4.6rem]"
-            value={String(chapter?.number ?? 1)}
+            value={String(chapterNum)}
             aria-label="Chapter"
-            onChange={(e) => goTo(bookId, Number(e.target.value))}
+            onChange={(e) => goTo(bookId, Number(e.target.value), 1)}
           >
-            {book?.chapters.map((c) => (
-              <option key={c.number} value={c.number}>
-                {c.number}
+            {Array.from({ length: meta.chapters }, (_, i) => i + 1).map((n) => (
+              <option key={n} value={n}>
+                {n}
               </option>
             ))}
           </select>
@@ -229,67 +267,88 @@ export function ScriptureReader() {
               setVerseNum(Number(e.target.value));
             }}
           >
-            {chapter?.verses.map((v) => (
+            {(chapter?.verses ?? [{ n: 1 }]).map((v) => (
               <option key={v.n} value={v.n}>
                 {v.n}
               </option>
             ))}
           </select>
         </div>
-        <div className="mt-2 flex items-center justify-between gap-2 text-xs text-subtle">
-          <span className="font-ethiopic">{book?.nameGez}</span>
-          <button type="button" className="nav-chip h-10 w-10" aria-label="Next chapter" onClick={() => stepChapter(1)}>
-            <ChevronRight className="size-4" />
-          </button>
-        </div>
+        <p className="mt-2 text-xs text-subtle">
+          <span className="font-ethiopic">{meta.nameGez}</span>
+          {" · "}
+          swipe right next · swipe left previous
+        </p>
       </div>
 
-      {book && chapter ? (
-        <article className="mt-4 rounded-xl bg-surface p-5 shadow-[var(--shadow-border)] sm:p-7">
-          <h3 className="font-display text-2xl">{book.nameEn}</h3>
-          <p className="font-ethiopic text-muted">{book.nameGez}</p>
-          <p className="mt-2 text-sm text-muted">{book.note}</p>
-          {chapter.title ? (
-            <p className="mt-4 text-xs uppercase tracking-[0.18em] text-subtle">{chapter.title}</p>
-          ) : null}
-          <p className="mt-1 text-sm text-subtle">
-            Chapter {chapter.number} · {chapter.verses.length} verses
-          </p>
-          <div className="mt-5">
-            {lang === "dual" ? (
-              <div className="grid gap-8 md:grid-cols-2">
+      <article
+        ref={readerRef}
+        className={cn(
+          "mazhaf-reader mt-4 rounded-xl bg-surface p-5 shadow-[var(--shadow-border)] sm:p-7",
+          slide === 1 && "mazhaf-slide-next",
+          slide === -1 && "mazhaf-slide-prev",
+        )}
+        onPointerDown={onPointerDown}
+        onPointerUp={onPointerUp}
+        onPointerCancel={() => {
+          touch.current = null;
+        }}
+      >
+        <h3 className="font-display text-2xl">{meta.nameEn}</h3>
+        <p className="font-ethiopic text-muted">{meta.nameGez}</p>
+        <p className="mt-2 text-sm text-muted">{meta.note}</p>
+        {loading || !chapter ? (
+          <p className="mt-6 text-sm text-muted">Opening {meta.nameEn}…</p>
+        ) : (
+          <>
+            <p className="mt-4 text-sm text-subtle">
+              Chapter {chapter.number} of {meta.chapters} · {chapter.verses.length} verses
+            </p>
+            <div className="mt-5">
+              {shownLang === "dual" ? (
+                <div className="grid gap-8 md:grid-cols-2">
+                  <VerseCol
+                    bookId={meta.id}
+                    chapter={chapter.number}
+                    verses={chapter.verses}
+                    side="traditional"
+                    active={verseNum}
+                    onSelect={setVerseNum}
+                    anchor
+                  />
+                  <VerseCol
+                    bookId={meta.id}
+                    chapter={chapter.number}
+                    verses={chapter.verses}
+                    side="english"
+                    active={verseNum}
+                    onSelect={setVerseNum}
+                  />
+                </div>
+              ) : (
                 <VerseCol
-                  bookId={book.id}
+                  bookId={meta.id}
                   chapter={chapter.number}
                   verses={chapter.verses}
-                  side="traditional"
+                  side={shownLang === "traditional" ? "traditional" : "english"}
                   active={verseNum}
                   onSelect={setVerseNum}
                   anchor
                 />
-                <VerseCol
-                  bookId={book.id}
-                  chapter={chapter.number}
-                  verses={chapter.verses}
-                  side="english"
-                  active={verseNum}
-                  onSelect={setVerseNum}
-                />
-              </div>
-            ) : (
-              <VerseCol
-                bookId={book.id}
-                chapter={chapter.number}
-                verses={chapter.verses}
-                side={lang === "traditional" ? "traditional" : "english"}
-                active={verseNum}
-                onSelect={setVerseNum}
-                anchor
-              />
-            )}
-          </div>
-        </article>
-      ) : null}
+              )}
+            </div>
+            <p className="mt-8 text-center text-xs text-subtle">
+              {chapter.number >= meta.chapters
+                ? `Next: ${nextMeta.nameEn} 1`
+                : `Next: ${meta.nameEn} ${chapter.number + 1}`}
+              {" · "}
+              {chapter.number <= 1
+                ? `Previous: ${prevMeta.nameEn} ${prevMeta.chapters}`
+                : `Previous: ${meta.nameEn} ${chapter.number - 1}`}
+            </p>
+          </>
+        )}
+      </article>
 
       <div className="mt-4 rounded-xl bg-surface p-4 shadow-[var(--shadow-border)]">
         <div className="flex flex-wrap items-center gap-2">
@@ -318,32 +377,31 @@ export function ScriptureReader() {
         ) : null}
       </div>
 
-      <details className="mt-4 rounded-xl bg-surface p-4 shadow-[var(--shadow-border)]" open>
-        <summary className="cursor-pointer font-display text-xl">The eighty-one books</summary>
-        <p className="mt-2 text-sm text-muted">
-          Tap a title to open it when the observatory holds the text. Grey titles are listed in the
-          Tewahedo canon and will be filled as the library grows.
-        </p>
-        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {CANON_INDEX.map((g) => (
+      <div className="mt-4 rounded-xl bg-surface p-4 shadow-[var(--shadow-border)]">
+        <h3 className="font-display text-xl">The Tewahedo library</h3>
+        <p className="mt-2 text-sm text-muted">Tap any book. It opens at chapter 1, verse 1.</p>
+        <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {CANON_GROUPS.map((g) => (
             <div key={g.section}>
               <p className="text-xs uppercase tracking-wider text-subtle">{g.section}</p>
-              <ul className="mt-1 text-sm">
-                {g.books.map((name) => {
-                  const match = matchCanonName(name);
+              <ul className="mt-1">
+                {g.ids.map((id) => {
+                  const item = getCanon(id);
+                  if (!item) return null;
+                  const on = item.id === bookId;
                   return (
-                    <li key={name}>
-                      {match ? (
-                        <button
-                          type="button"
-                          className="py-1 text-left text-fg underline-offset-2 hover:underline"
-                          onClick={() => goTo(match.id, match.chapters[0]?.number ?? 1)}
-                        >
-                          {name}
-                        </button>
-                      ) : (
-                        <span className="py-1 text-muted">{name}</span>
-                      )}
+                    <li key={id}>
+                      <button
+                        type="button"
+                        className={cn(
+                          "w-full py-2 text-left text-sm",
+                          on ? "text-accent" : "text-fg hover:underline",
+                        )}
+                        onClick={() => goTo(item.id, 1, 1)}
+                      >
+                        {item.nameEn}
+                        <span className="ml-2 font-ethiopic text-xs text-muted">{item.nameAm}</span>
+                      </button>
                     </li>
                   );
                 })}
@@ -351,7 +409,7 @@ export function ScriptureReader() {
             </div>
           ))}
         </div>
-      </details>
+      </div>
     </div>
   );
 }
@@ -367,7 +425,7 @@ function VerseCol({
 }: {
   bookId: string;
   chapter: number;
-  verses: { n: number; gez?: string; am: string; en: string }[];
+  verses: Verse[];
   side: "traditional" | "english";
   active: number;
   onSelect: (n: number) => void;

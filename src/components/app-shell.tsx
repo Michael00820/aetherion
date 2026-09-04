@@ -113,7 +113,11 @@ export function AppShell() {
             return (
               <div
                 key={item.id}
-                className={cn("min-h-0 flex-1 flex-col", on ? "flex" : "hidden")}
+                className={cn(
+                  "pane-scroll min-h-0 flex-1 flex-col",
+                  on ? "flex" : "hidden",
+                  item.id === "orbits" ? "overflow-hidden" : "overflow-y-auto",
+                )}
                 hidden={!on}
               >
                 <Pane />

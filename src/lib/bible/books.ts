@@ -634,3 +634,98 @@ export const CANON_INDEX: { section: string; books: string[] }[] = [
 export function getBook(id: string): Book | undefined {
   return BOOKS.find((b) => b.id === id);
 }
+
+export type ScriptureHit = {
+  bookId: string;
+  bookEn: string;
+  bookAm: string;
+  chapter: number;
+  verse: number;
+  preview: string;
+};
+
+export function searchScripture(query: string, limit = 48): ScriptureHit[] {
+  const raw = query.trim();
+  if (raw.length < 2) return [];
+  const q = raw.toLowerCase();
+  const hits: ScriptureHit[] = [];
+  const seen = new Set<string>();
+
+  const push = (hit: ScriptureHit) => {
+    const key = `${hit.bookId}:${hit.chapter}:${hit.verse}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    hits.push(hit);
+  };
+
+  const ref = raw.match(/^(.+?)\s+(\d+)(?::(\d+))?$/);
+  if (ref) {
+    const name = ref[1]?.toLowerCase() ?? "";
+    const chN = Number(ref[2]);
+    const vN = ref[3] ? Number(ref[3]) : null;
+    for (const book of BOOKS) {
+      const names = `${book.nameEn} ${book.nameAm} ${book.nameGez} ${book.id}`.toLowerCase();
+      if (!names.includes(name)) continue;
+      const chapter = book.chapters.find((c) => c.number === chN) ?? book.chapters[0];
+      if (!chapter) continue;
+      const verse = (vN ? chapter.verses.find((v) => v.n === vN) : chapter.verses[0]) ?? chapter.verses[0];
+      if (!verse) continue;
+      push({
+        bookId: book.id,
+        bookEn: book.nameEn,
+        bookAm: book.nameAm,
+        chapter: chapter.number,
+        verse: verse.n,
+        preview: verse.en,
+      });
+    }
+  }
+
+  for (const book of BOOKS) {
+    const names = `${book.nameEn} ${book.nameAm} ${book.nameGez} ${book.note}`.toLowerCase();
+    if (names.includes(q)) {
+      const chapter = book.chapters[0];
+      const verse = chapter?.verses[0];
+      if (chapter && verse) {
+        push({
+          bookId: book.id,
+          bookEn: book.nameEn,
+          bookAm: book.nameAm,
+          chapter: chapter.number,
+          verse: verse.n,
+          preview: book.note,
+        });
+      }
+    }
+    for (const chapter of book.chapters) {
+      for (const verse of chapter.verses) {
+        const hay = `${verse.en} ${verse.am} ${verse.gez ?? ""}`.toLowerCase();
+        if (!hay.includes(q)) continue;
+        push({
+          bookId: book.id,
+          bookEn: book.nameEn,
+          bookAm: book.nameAm,
+          chapter: chapter.number,
+          verse: verse.n,
+          preview: verse.en,
+        });
+        if (hits.length >= limit) return hits;
+      }
+    }
+  }
+  return hits.slice(0, limit);
+}
+
+export function matchCanonName(name: string): Book | undefined {
+  const n = name.toLowerCase().trim();
+  const exact = BOOKS.find((b) => b.nameEn.toLowerCase() === n);
+  if (exact) return exact;
+  const head = n.replace(/\(.*\)/, "").split(/[–,—]/)[0]?.trim() ?? n;
+  if (head.length < 4) return undefined;
+  return BOOKS.find((b) => {
+    const en = b.nameEn.toLowerCase();
+    const first = en.split(/\s+/)[0] ?? en;
+    return en === head || en.startsWith(head) || (head.startsWith(first) && first.length >= 4);
+  });
+}
+

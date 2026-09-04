@@ -622,3 +622,18 @@ html[data-theme="silver"] .zemen-page {
   align-items: center;
   justify-content: center;
 }
+
+.pane-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.mazhaf-select {
+  height: 44px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--raised);
+  color: var(--fg);
+  padding: 0 10px;
+  font-size: 0.9rem;
+}

@@ -31,7 +31,7 @@ export function EthiopianCalendar() {
   const yearEnd = ethiopianToGregorian(year, 13, daysInEthiopianMonth(year, 13));
 
   return (
-    <div className="zemen-page panel-enter scroll-thin h-full min-h-0 overflow-y-auto">
+    <div className="zemen-page panel-enter">
       <div className="zemen-toolbar">
         <button type="button" className="zemen-nav" aria-label="Previous year" onClick={() => setCalendarYear(year - 1)}>
           <ChevronLeft className="size-4" />

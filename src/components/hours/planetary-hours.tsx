@@ -111,7 +111,7 @@ export function PlanetaryHours() {
   }
 
   return (
-    <div className="panel-enter mx-auto flex h-full min-h-0 w-full max-w-xl flex-col overflow-hidden rounded-xl bg-surface shadow-[var(--shadow-border)]">
+    <div className="panel-enter mx-auto flex w-full max-w-xl flex-col rounded-xl bg-surface shadow-[var(--shadow-border)]">
       <header className="shrink-0 border-b border-border px-4 pt-4">
         <p className="text-xs uppercase tracking-[0.22em] text-subtle">Planetary Hours</p>
         <h2 className="mt-1 font-display text-3xl">Saat</h2>
@@ -175,7 +175,7 @@ export function PlanetaryHours() {
         </div>
       </header>
 
-      <div className="scroll-thin min-h-0 flex-1 overflow-y-auto">
+      <div>
         {scope === "day" ? <DayList day={day} now={now} timeZone={place.timeZone} /> : null}
         {scope === "month" ? (
           <MonthGrid cursor={live ? day.sunrise : cursor} onPick={(d) => { setLive(false); setCursor(d); setScope("day"); }} timeZone={place.timeZone} />

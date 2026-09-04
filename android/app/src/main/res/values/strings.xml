@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Aetherion</string>
+    <string name="title_activity_main">Aetherion</string>
+    <string name="package_name">com.aetherion.observatory</string>
+    <string name="custom_url_scheme">com.aetherion.observatory</string>
+</resources>

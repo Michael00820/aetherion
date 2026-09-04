@@ -19,3 +19,8 @@ npm run dev
 ```
 
 Built with TanStack Start, React, Three.js, and Tailwind.
+
+## Android / Play Store
+
+The `android` folder is an Android Studio project (`com.aetherion.observatory`). See [ANDROID.md](ANDROID.md) for the signed AAB steps, and `play/` for the Console icon, feature graphic, and listing copy.
+

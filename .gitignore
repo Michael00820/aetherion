@@ -1,5 +1,6 @@
 node_modules
 dist
+dist-android
 .output
 .tanstack
 .nitro
@@ -18,3 +19,14 @@ artifacts
 screenshots/*.png
 screenshots/*.jpg
 screenshots/*.json
+android/.gradle
+android/build
+android/app/build
+android/capacitor-cordova-android-plugins/build
+android/captures
+android/local.properties
+android/keystore.properties
+android/*.jks
+android/*.keystore
+android/.idea
+*.iml

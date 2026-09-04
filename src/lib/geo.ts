@@ -53,6 +53,25 @@ export function guessHorizon(timeZone = browserTimeZone()): Geo {
 export async function detectHorizon(): Promise<Geo> {
   const timeZone = browserTimeZone();
   const fallback = guessHorizon(timeZone);
+  try {
+    const { Capacitor } = await import("@capacitor/core");
+    if (Capacitor.isNativePlatform()) {
+      const { Geolocation } = await import("@capacitor/geolocation");
+      const pos = await Geolocation.getCurrentPosition({
+        enableHighAccuracy: false,
+        timeout: 8000,
+      });
+      return {
+        lat: round4(pos.coords.latitude),
+        lng: round4(pos.coords.longitude),
+        label: "Your horizon",
+        timeZone,
+        source: "geo",
+      };
+    }
+  } catch {
+    /* fall through to browser geolocation */
+  }
   if (typeof navigator === "undefined" || !navigator.geolocation) return fallback;
   try {
     const pos = await new Promise<GeolocationPosition>((resolve, reject) => {

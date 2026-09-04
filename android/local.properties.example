@@ -1,0 +1,3 @@
+## Copy to local.properties (never commit the copy).
+## Android Studio writes this automatically when you open the project.
+sdk.dir=/Users/YOU/Library/Android/sdk

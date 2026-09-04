@@ -4,6 +4,7 @@ import { dateToEthiopian, formatEthiopian, formatEthiopianTime, MONTHS } from "@
 import { useAppStore, type PanelId } from "@/lib/store";
 import { useTheme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
+import { bootNativeShell } from "@/lib/native";
 import { Button } from "@/components/ui/button";
 
 const NAV: { id: PanelId; label: string; am: string; icon: typeof Orbit }[] = [
@@ -30,6 +31,7 @@ export function AppShell() {
   const [panes, setPanes] = useState<Partial<Record<PanelId, ComponentType>>>({});
 
   useEffect(() => {
+    void bootNativeShell();
     const id = window.setInterval(() => setClock(new Date()), 1000);
     return () => window.clearInterval(id);
   }, []);

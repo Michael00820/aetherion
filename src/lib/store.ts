@@ -1,86 +1,73 @@
 import { create } from "zustand";
-import type { BodyId, PanelId, SpeedId } from "./types";
+import { persist } from "zustand/middleware";
+import type { PlanetId } from "./planets";
+import { PLACES, type Geo } from "./sun";
 
-const SPEEDS: SpeedId[] = [0, 1, 24, 168, 720, 8760];
+export type PanelId = "orbits" | "zemen" | "hours" | "scripture";
+export type ThemeMode = "auto" | "gold" | "silver";
+export type ScriptureLang = "traditional" | "english" | "dual";
 
 type AppState = {
-  simTime: number;
-  speed: SpeedId;
-  selected: BodyId | null;
-  follow: BodyId | null;
   panel: PanelId;
-  showOrbits: boolean;
+  setPanel: (panel: PanelId) => void;
+  paused: boolean;
+  togglePaused: () => void;
+  setPaused: (paused: boolean) => void;
+  speed: number;
+  setSpeed: (speed: number) => void;
+  focusedPlanet: PlanetId | null;
+  setFocusedPlanet: (id: PlanetId | null) => void;
   showLabels: boolean;
-  muted: boolean;
-  onboarded: boolean;
-  setSimTime: (t: number) => void;
-  advance: (ms: number) => void;
-  cycleSpeed: () => void;
-  setSpeed: (s: SpeedId) => void;
-  select: (id: BodyId | null) => void;
-  setFollow: (id: BodyId | null) => void;
-  setPanel: (p: PanelId) => void;
-  toggleOrbits: () => void;
-  toggleLabels: () => void;
-  toggleMuted: () => void;
-  completeOnboarding: () => void;
+  setShowLabels: (v: boolean) => void;
+  showTrails: boolean;
+  setShowTrails: (v: boolean) => void;
+  themeMode: ThemeMode;
+  setThemeMode: (mode: ThemeMode) => void;
+  place: Geo;
+  setPlace: (place: Geo) => void;
+  scriptureLang: ScriptureLang;
+  setScriptureLang: (lang: ScriptureLang) => void;
+  calendarYear: number | null;
+  setCalendarYear: (year: number) => void;
 };
 
-function readOnboarded() {
-  if (typeof window === "undefined") return false;
-  try {
-    return window.localStorage.getItem("aetherion-onboarded") === "1";
-  } catch {
-    return false;
-  }
-}
+const addis = PLACES[0] ?? { lat: 9.03, lng: 38.74, label: "Addis Ababa" };
 
-export const useApp = create<AppState>((set, get) => ({
-  simTime: Date.now(),
-  speed: 1,
-  selected: null,
-  follow: null,
-  panel: "none",
-  showOrbits: true,
-  showLabels: true,
-  muted: true,
-  onboarded: readOnboarded(),
-  setSimTime: (t) => set({ simTime: t }),
-  advance: (ms) => {
-    const { speed, simTime } = get();
-    if (speed === 0) return;
-    set({ simTime: simTime + ms * speed });
-  },
-  cycleSpeed: () => {
-    const i = SPEEDS.indexOf(get().speed);
-    set({ speed: SPEEDS[(i + 1) % SPEEDS.length] ?? 1 });
-  },
-  setSpeed: (s) => set({ speed: s }),
-  select: (id) =>
-    set({
-      selected: id,
-      panel: id ? "planet" : get().panel === "planet" ? "none" : get().panel,
+export const useAppStore = create<AppState>()(
+  persist(
+    (set) => ({
+      panel: "orbits",
+      setPanel: (panel) => set({ panel }),
+      paused: false,
+      togglePaused: () => set((s) => ({ paused: !s.paused })),
+      setPaused: (paused) => set({ paused }),
+      speed: 1,
+      setSpeed: (speed) => set({ speed }),
+      focusedPlanet: null,
+      setFocusedPlanet: (focusedPlanet) => set({ focusedPlanet }),
+      showLabels: true,
+      setShowLabels: (showLabels) => set({ showLabels }),
+      showTrails: true,
+      setShowTrails: (showTrails) => set({ showTrails }),
+      themeMode: "auto",
+      setThemeMode: (themeMode) => set({ themeMode }),
+      place: addis,
+      setPlace: (place) => set({ place }),
+      scriptureLang: "dual",
+      setScriptureLang: (scriptureLang) => set({ scriptureLang }),
+      calendarYear: null,
+      setCalendarYear: (calendarYear) => set({ calendarYear }),
     }),
-  setFollow: (id) => set({ follow: id }),
-  setPanel: (p) => set({ panel: p }),
-  toggleOrbits: () => set({ showOrbits: !get().showOrbits }),
-  toggleLabels: () => set({ showLabels: !get().showLabels }),
-  toggleMuted: () => set({ muted: !get().muted }),
-  completeOnboarding: () => {
-    try {
-      window.localStorage.setItem("aetherion-onboarded", "1");
-    } catch {
-      /* ignore */
-    }
-    set({ onboarded: true, muted: false });
-  },
-}));
-
-export const SPEED_LABEL: Record<SpeedId, string> = {
-  0: "Paused",
-  1: "Realtime",
-  24: "Day / sec",
-  168: "Week / sec",
-  720: "Month / sec",
-  8760: "Year / sec",
-};
+    {
+      name: "aetherion",
+      partialize: (s) => ({
+        themeMode: s.themeMode,
+        speed: s.speed,
+        showLabels: s.showLabels,
+        showTrails: s.showTrails,
+        scriptureLang: s.scriptureLang,
+        place: s.place,
+      }),
+    },
+  ),
+);

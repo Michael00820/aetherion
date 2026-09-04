@@ -1,49 +1,136 @@
 @import "tailwindcss";
 
-@theme {
-  --color-ink: #07060a;
-  --color-ink-elevated: #121018;
-  --color-ink-soft: #1c1824;
-  --color-parchment: #f3e6c4;
-  --color-parchment-dim: #cbbd96;
-  --color-gold: #c9a227;
-  --color-gold-soft: #e2c56a;
-  --color-oxblood: #6b1d2a;
-  --color-teal: #1a6b6b;
-  --color-teal-mist: #7eb8b8;
-  --color-border: rgb(243 230 196 / 14%);
-  --color-border-strong: rgb(201 162 39 / 40%);
+@font-face {
+  font-family: "Aether Display";
+  src: url("/fonts/cormorant-500.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Aether Display";
+  src: url("/fonts/cormorant-600.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Aether Sans";
+  src: url("/fonts/source-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Aether Sans";
+  src: url("/fonts/source-600.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Aether Geez";
+  src: url("/fonts/ethiopic-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
 
-  --font-display: "Cormorant Garamond", "Times New Roman", serif;
-  --font-sans: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
-  --font-geez: "Noto Sans Ethiopic", "Abyssinica SIL", serif;
+@theme {
+  --font-sans: "Aether Sans", "Figtree", "Segoe UI", system-ui, sans-serif;
+  --font-display: "Aether Display", "Cormorant Garamond", Georgia, serif;
+  --font-ethiopic: "Aether Geez", "Noto Sans Ethiopic", serif;
+
+  --color-bg: var(--bg);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-subtle: var(--subtle);
+  --color-surface: var(--surface);
+  --color-raised: var(--raised);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-fg: var(--accent-fg);
+  --color-glow: var(--glow);
+  --color-ring: var(--ring);
+  --color-danger: #b4533a;
 
   --radius-xs: 4px;
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 18px;
-  --radius-xl: 28px;
+  --radius-xl: 24px;
+}
 
-  --shadow-panel: 0 18px 50px rgb(0 0 0 / 45%);
+:root,
+html[data-theme="gold"] {
+  --bg: #14110c;
+  --fg: #f3ead7;
+  --muted: #b8a078;
+  --subtle: #8a734c;
+  --surface: #1c160e;
+  --raised: #261e12;
+  --border: color-mix(in oklab, #f3ead7 14%, transparent);
+  --accent: #c9a227;
+  --accent-fg: #1a140c;
+  --glow: color-mix(in oklab, #c9a227 28%, transparent);
+  --ring: #e4c56a;
+  --shadow-border: 0 0 0 1px color-mix(in oklab, #f3ead7 10%, transparent);
+  --shadow-border-hover: 0 0 0 1px color-mix(in oklab, #c9a227 42%, transparent);
+  color-scheme: dark;
+}
+
+html[data-theme="silver"] {
+  --bg: #0c0e12;
+  --fg: #e8eaf0;
+  --muted: #9aa3b2;
+  --subtle: #6e7786;
+  --surface: #12151c;
+  --raised: #1a1e28;
+  --border: color-mix(in oklab, #e8eaf0 13%, transparent);
+  --accent: #c5cdd8;
+  --accent-fg: #0c0e12;
+  --glow: color-mix(in oklab, #c5cdd8 24%, transparent);
+  --ring: #d7dde6;
+  --shadow-border: 0 0 0 1px color-mix(in oklab, #e8eaf0 10%, transparent);
+  --shadow-border-hover: 0 0 0 1px color-mix(in oklab, #c5cdd8 40%, transparent);
+  color-scheme: dark;
 }
 
 @layer base {
-  html,
-  body,
-  #app {
-    min-height: 100%;
-    background: var(--color-ink);
-    color: var(--color-parchment);
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background: var(--bg);
+    color: var(--fg);
   }
 
   body {
+    margin: 0;
+    min-height: 100dvh;
+    background: var(--bg);
+    color: var(--fg);
     font-family: var(--font-sans);
-    overflow: hidden;
+    line-height: 1.5;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    text-wrap: balance;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+    font-weight: 600;
   }
 
   button:not(:disabled),
   [role="button"]:not(:disabled) {
     cursor: pointer;
+  }
+
+  * {
+    border-color: var(--border);
   }
 }
 
@@ -55,4 +142,140 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+.font-ethiopic {
+  font-family: var(--font-ethiopic), var(--font-sans);
+}
+
+.panel-enter {
+  animation: panel-in 400ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.starfield {
+  background:
+    radial-gradient(1200px 500px at 20% -10%, var(--glow), transparent 55%),
+    radial-gradient(800px 400px at 90% 0%, color-mix(in oklab, var(--accent) 8%, transparent), transparent 50%),
+    var(--bg);
+}
+
+input[type="range"].speed-range {
+  appearance: none;
+  height: 4px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--fg) 16%, transparent);
+  outline: none;
+}
+
+input[type="range"].speed-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--accent);
+  box-shadow: 0 0 0 4px var(--glow);
+}
+
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--accent) 40%, transparent) transparent;
+}
+
+.hour-row {
+  display: grid;
+  grid-template-columns: 2.2rem 2rem 1fr auto;
+  grid-template-areas:
+    "num glyph name time"
+    ". . track track";
+  align-items: center;
+  column-gap: 8px;
+  padding: 14px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.hour-row.night {
+  background: color-mix(in oklab, var(--fg) 7%, var(--raised));
+}
+
+.hour-row.current {
+  font-style: italic;
+  font-weight: 600;
+}
+
+.hour-num {
+  grid-area: num;
+  font-size: 1.05rem;
+}
+
+.hour-glyph {
+  grid-area: glyph;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.hour-name {
+  grid-area: name;
+  font-size: 1.05rem;
+}
+
+.hour-time {
+  grid-area: time;
+  font-size: 0.92rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--muted);
+}
+
+.hour-row.current .hour-time {
+  color: var(--fg);
+}
+
+.hour-track {
+  grid-area: track;
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  gap: 8px;
+  align-items: center;
+  margin-top: 8px;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 400;
+  color: var(--subtle);
+}
+
+.hour-bar {
+  height: 2px;
+  background: color-mix(in oklab, var(--fg) 16%, transparent);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.hour-bar i {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+
+.nav-chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--accent);
+  color: var(--accent-fg);
 }

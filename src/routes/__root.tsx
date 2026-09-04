@@ -1,7 +1,9 @@
 import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
 import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
+import { ThemeProvider } from "@/lib/theme";
 import appCss from "../styles.css?url";
+import cssText from "../styles.css?inline";
 
 const APP_NAME = "Aetherion";
 
@@ -11,34 +13,33 @@ export const Route = createRootRoute({
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: APP_NAME },
-      { name: "theme-color", content: "#07060a" },
       {
         name: "description",
-        content: "A living orrery of the Ethiopian cosmos — calendar, seasonal hours, and scripture.",
+        content: "An observatory of the Ethiopian calendar, planetary hours, the solar system, and the Tewahedo scriptures.",
       },
+      { name: "theme-color", content: "#14110c" },
+      { name: "color-scheme", content: "dark" },
     ],
     links: [
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
       { rel: "stylesheet", href: appCss },
       { rel: "manifest", href: "/__grok/manifest.webmanifest" },
       { rel: "apple-touch-icon", href: "/__grok/icon-180.png" },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Noto+Sans+Ethiopic:wght@400;500&family=Source+Sans+3:wght@400;500;600&display=swap",
-      },
     ],
+    styles: [{ children: cssText }],
   }),
   component: () => (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning data-theme="gold">
       <head>
         <HeadContent />
+        <style dangerouslySetInnerHTML={{ __html: cssText }} />
       </head>
-      <body>
+      <body className="antialiased">
         <PreviewHostBridge />
         <AuthProvider>
-          <Outlet />
+          <ThemeProvider>
+            <Outlet />
+          </ThemeProvider>
         </AuthProvider>
         <Scripts />
       </body>

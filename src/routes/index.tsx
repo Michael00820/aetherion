@@ -1,10 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Cosmos } from "@/components/Cosmos";
+import { AppShell } from "@/components/app-shell";
 
-export const Route = createFileRoute("/")({
-  component: Home,
-});
+export const Route = createFileRoute("/")({ component: Home });
 
 function Home() {
-  return <Cosmos />;
+  return <AppShell />;
 }

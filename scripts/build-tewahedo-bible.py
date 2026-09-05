@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Build per-book JSON for the Tewahedo observatory from public-domain KJV + WEB."""
+"""Build per-book JSON for the Tewahedo observatory from public-domain KJV + WEB.
+
+After generating books, run restore-yah-names.py so English uses YAHUAH / Yahushua.
+"""
 from __future__ import annotations
 
 import json

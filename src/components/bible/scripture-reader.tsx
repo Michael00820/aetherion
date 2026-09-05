@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
 import { ChevronLeft, ChevronRight, Search } from "lucide-react";
-import { CATALOG, CANON_GROUPS, getCanon, neighbor } from "@/lib/bible/catalog";
+import { CATALOG, CANON_GROUPS, displayEn, getCanon, neighbor } from "@/lib/bible/catalog";
 import { hasTraditional, loadBook, nextLocation, prefetchNeighbors, searchScripture } from "@/lib/bible/load";
 import type { Book, Verse } from "@/lib/bible/types";
 import { SECTION_LABELS } from "@/lib/bible/types";
@@ -158,17 +158,20 @@ export function ScriptureReader() {
     <div className="panel-enter mx-auto w-full max-w-6xl px-1 pb-10">
       <header className="rounded-xl bg-surface p-5 shadow-[var(--shadow-border)]">
         <p className="text-xs uppercase tracking-[0.2em] text-subtle">Mazhaf — the books</p>
-        <h2 className="mt-2 font-display text-4xl">Ethiopian Orthodox Tewahedo scripture</h2>
+        <h2 className="mt-2 font-display text-4xl">Tewahedo scripture · YAH names</h2>
         <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted">
-          Every listed book opens at chapter 1, verse 1. Scroll down through verses. Swipe right for
-          the next chapter, swipe left for the previous — at the end of a book the next book begins,
-          and so on around the canon.
+          English restores the unique Name of the Creator after the YAH Scriptures:
+          {" "}
+          <strong>YAHUAH</strong> — never Elohim, which names other mighty ones — and
+          {" "}
+          <strong>Yahushua</strong> for the Son. Traditional pages keep Ge'ez and Amharic.
+          Open any book at chapter 1. Swipe right for the next chapter, left for the previous.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
           {(
             [
               ["traditional", "Traditional"],
-              ["english", "English"],
+              ["english", "English · YAH"],
               ["dual", "Facing pages"],
             ] as const
           ).map(([id, label]) => (
@@ -194,7 +197,7 @@ export function ScriptureReader() {
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search books and verses — e.g. Exodus, light, John 1:1"
+            placeholder="Search YAHUAH, Yahushua, Bereshith, light, Yohanan 1:1"
             className="h-12 w-full rounded-lg border border-border bg-raised pl-10 pr-3 text-sm"
             aria-label="Search scripture"
           />
@@ -239,7 +242,7 @@ export function ScriptureReader() {
                 <optgroup key={section} label={SECTION_LABELS[section].en}>
                   {group.map((b) => (
                     <option key={b.id} value={b.id}>
-                      {b.nameEn} — {b.nameAm}
+                      {displayEn(b)} — {b.nameAm}
                     </option>
                   ))}
                 </optgroup>
@@ -294,11 +297,11 @@ export function ScriptureReader() {
           touch.current = null;
         }}
       >
-        <h3 className="font-display text-2xl">{meta.nameEn}</h3>
+        <h3 className="font-display text-2xl">{displayEn(meta)}</h3>
         <p className="font-ethiopic text-muted">{meta.nameGez}</p>
         <p className="mt-2 text-sm text-muted">{meta.note}</p>
         {loading || !chapter ? (
-          <p className="mt-6 text-sm text-muted">Opening {meta.nameEn}…</p>
+          <p className="mt-6 text-sm text-muted">Opening {displayEn(meta)}…</p>
         ) : (
           <>
             <p className="mt-4 text-sm text-subtle">
@@ -339,12 +342,12 @@ export function ScriptureReader() {
             </div>
             <p className="mt-8 text-center text-xs text-subtle">
               {chapter.number >= meta.chapters
-                ? `Next: ${nextMeta.nameEn} 1`
-                : `Next: ${meta.nameEn} ${chapter.number + 1}`}
+                ? `Next: ${displayEn(nextMeta)} 1`
+                : `Next: ${displayEn(meta)} ${chapter.number + 1}`}
               {" · "}
               {chapter.number <= 1
-                ? `Previous: ${prevMeta.nameEn} ${prevMeta.chapters}`
-                : `Previous: ${meta.nameEn} ${chapter.number - 1}`}
+                ? `Previous: ${displayEn(prevMeta)} ${prevMeta.chapters}`
+                : `Previous: ${displayEn(meta)} ${chapter.number - 1}`}
             </p>
           </>
         )}
@@ -379,7 +382,9 @@ export function ScriptureReader() {
 
       <div className="mt-4 rounded-xl bg-surface p-4 shadow-[var(--shadow-border)]">
         <h3 className="font-display text-xl">The Tewahedo library</h3>
-        <p className="mt-2 text-sm text-muted">Tap any book. It opens at chapter 1, verse 1.</p>
+        <p className="mt-2 text-sm text-muted">
+          Tap any book. English is the YAH restoration. Traditional is Ge'ez and Amharic.
+        </p>
         <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {CANON_GROUPS.map((g) => (
             <div key={g.section}>
@@ -399,7 +404,7 @@ export function ScriptureReader() {
                         )}
                         onClick={() => goTo(item.id, 1, 1)}
                       >
-                        {item.nameEn}
+                        {displayEn(item)}
                         <span className="ml-2 font-ethiopic text-xs text-muted">{item.nameAm}</span>
                       </button>
                     </li>
@@ -433,6 +438,9 @@ function VerseCol({
 }) {
   return (
     <div className="space-y-3">
+      <p className="text-xs uppercase tracking-[0.16em] text-subtle">
+        {side === "english" ? "English · YAHUAH / Yahushua" : "Ge'ez / Amharic"}
+      </p>
       {verses.map((v) => (
         <p
           key={`${side}-${v.n}`}

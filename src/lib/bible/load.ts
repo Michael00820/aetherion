@@ -1,4 +1,4 @@
-import { CATALOG, getCanon, neighbor, type CanonBook } from "./catalog";
+import { CATALOG, displayEn, getCanon, neighbor, yahTitle, type CanonBook } from "./catalog";
 import type { Book, Verse } from "./types";
 
 const cache = new Map<string, Book>();
@@ -77,11 +77,11 @@ export function searchScripture(query: string, current?: Book | null, limit = 48
     const chN = Number(ref[2]);
     const vN = ref[3] ? Number(ref[3]) : 1;
     for (const book of CATALOG) {
-      const names = `${book.nameEn} ${book.nameAm} ${book.nameGez} ${book.id}`.toLowerCase();
+      const names = `${book.nameEn} ${yahTitle(book.id)} ${book.nameAm} ${book.nameGez} ${book.id}`.toLowerCase();
       if (!names.includes(name)) continue;
       push({
         bookId: book.id,
-        bookEn: book.nameEn,
+        bookEn: displayEn(book),
         bookAm: book.nameAm,
         chapter: Math.min(Math.max(1, chN), book.chapters),
         verse: vN,
@@ -91,11 +91,11 @@ export function searchScripture(query: string, current?: Book | null, limit = 48
   }
 
   for (const book of CATALOG) {
-    const names = `${book.nameEn} ${book.nameAm} ${book.nameGez} ${book.note}`.toLowerCase();
+    const names = `${book.nameEn} ${yahTitle(book.id)} ${book.nameAm} ${book.nameGez} ${book.note}`.toLowerCase();
     if (names.includes(q)) {
       push({
         bookId: book.id,
-        bookEn: book.nameEn,
+        bookEn: displayEn(book),
         bookAm: book.nameAm,
         chapter: 1,
         verse: 1,
@@ -111,7 +111,7 @@ export function searchScripture(query: string, current?: Book | null, limit = 48
         if (!hay.includes(q)) continue;
         push({
           bookId: book.id,
-          bookEn: book.nameEn,
+          bookEn: displayEn(book),
           bookAm: book.nameAm,
           chapter: chapter.number,
           verse: verse.n,

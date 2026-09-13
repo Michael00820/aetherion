@@ -114,8 +114,8 @@ export function ScriptureReader() {
     const dy = e.clientY - touch.current.y;
     touch.current = null;
     if (Math.abs(dx) < 56 || Math.abs(dx) < Math.abs(dy) * 1.15) return;
-    if (dx > 0) stepChapter(1);
-    else stepChapter(-1);
+    if (dx > 0) stepChapter(-1);
+    else stepChapter(1);
   }
 
   async function runTranslate() {
@@ -168,7 +168,7 @@ export function ScriptureReader() {
           <strong>YAHUAH</strong> — never Elohim, which names other mighty ones — and
           {" "}
           <strong>Yahushua</strong> for the Son. Traditional pages keep Ge'ez and Amharic.
-          Open any book at chapter 1. Swipe right for the next chapter, left for the previous.
+          Open any book at chapter 1. Swipe left for the next chapter, right for the previous.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
           {(
@@ -251,7 +251,7 @@ export function ScriptureReader() {
         <p className="mt-2 text-xs text-subtle">
           <span className="font-ethiopic">{meta.nameGez}</span>
           {" · "}
-          swipe right next · swipe left previous
+          swipe left next · swipe right previous
         </p>
       </div>
 

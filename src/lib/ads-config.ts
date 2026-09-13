@@ -1,13 +1,12 @@
 /**
- * AdMob IDs. Google test units ship until you send production IDs.
- * Paste your ca-app-pub-… values here, set useTestAds to false,
- * and put the same androidAppId in android/app/src/main/res/values/strings.xml
+ * Production AdMob IDs. Keep useTestAds false for Play builds.
+ * Web preview still uses the in-app gate, not live AdMob.
  */
 export const ADMOB = {
-  androidAppId: "ca-app-pub-3940256099942544~3347511713",
-  tabInterstitial: "ca-app-pub-3940256099942544/1033173712",
-  chapterInterstitial: "ca-app-pub-3940256099942544/1033173712",
-  useTestAds: true,
+  androidAppId: "ca-app-pub-5547630504432869~2347293820",
+  tabInterstitial: "ca-app-pub-5547630504432869/5707954330",
+  chapterInterstitial: "ca-app-pub-5547630504432869/6777493420",
+  useTestAds: false,
 };
 
 export const AD_DURATION_MS = {

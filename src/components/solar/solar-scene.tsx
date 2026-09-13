@@ -170,7 +170,7 @@ function SceneContent() {
       <color attach="background" args={[theme.resolved === "gold" ? "#0c0906" : "#05060a"]} />
       <ambientLight intensity={0.32} />
       <pointLight position={[0, 0, 0]} intensity={2.4} distance={70} decay={2} color={sunColor} />
-      <Stars radius={90} depth={40} count={420} factor={2.2} saturation={0} fade={false} speed={0} />
+      <Stars radius={70} depth={28} count={220} factor={2} saturation={0} fade={false} speed={0} />
       <SimulationClock timeRef={timeRef} />
       <PlanetBody def={sun} />
       {ORBITING.filter((p) => p.id !== "earth").map((p) => (

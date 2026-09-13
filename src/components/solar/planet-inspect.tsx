@@ -1,35 +1,6 @@
-import { Canvas } from "@react-three/fiber";
-import { PresentationControls } from "@react-three/drei";
 import { X } from "lucide-react";
 import type { PlanetDef } from "@/lib/planets";
-import { useTheme } from "@/lib/theme";
 import { Button } from "@/components/ui/button";
-import { PlanetMesh } from "./planet-mesh";
-
-function Globe({ def }: { def: PlanetDef }) {
-  const theme = useTheme();
-  const key = theme.resolved === "gold" ? "#ffd27a" : "#d7dde8";
-  const radius = def.rings ? 1.15 : 1.45;
-  return (
-    <>
-      <ambientLight intensity={0.28} />
-      <directionalLight position={[4.2, 2.2, 3]} intensity={2.1} color={key} />
-      <PresentationControls
-        global
-        cursor
-        polar={[-0.45, 0.55]}
-        azimuth={[-Infinity, Infinity]}
-        damping={0.22}
-        speed={1.15}
-        snap={false}
-      >
-        <group position={[0, 0.1, 0]}>
-          <PlanetMesh def={def} radius={radius} inspect />
-        </group>
-      </PresentationControls>
-    </>
-  );
-}
 
 export function PlanetInspect({
   planet,
@@ -43,15 +14,6 @@ export function PlanetInspect({
       <button type="button" className="sky-inspect-close" onClick={onClose} aria-label="Close">
         <X className="size-5" />
       </button>
-      <div className="sky-inspect-stage">
-        <Canvas
-          camera={{ position: [0, 0.2, 5.2], fov: 42 }}
-          dpr={1}
-          gl={{ antialias: false, alpha: true, stencil: false, powerPreference: "default" }}
-        >
-          <Globe def={planet} />
-        </Canvas>
-      </div>
       <div className="sky-glass">
         <p className="font-ethiopic text-sm text-muted">
           {planet.geez} · {planet.glyph}

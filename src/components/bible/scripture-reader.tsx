@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
+import { memo, useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
 import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { CATALOG, CANON_GROUPS, displayEn, getCanon, neighbor } from "@/lib/bible/catalog";
-import { hasTraditional, loadBook, nextLocation, prefetchNeighbors, searchScripture } from "@/lib/bible/load";
+import { isEthiopic, loadBook, nextLocation, prefetchNeighbors, searchScripture, whenIdle } from "@/lib/bible/load";
 import type { Book, Verse } from "@/lib/bible/types";
 import { SECTION_LABELS } from "@/lib/bible/types";
 import { translateChapter } from "@/lib/translate";
@@ -21,7 +21,6 @@ export function ScriptureReader() {
   const [verseNum, setVerseNum] = useState(1);
   const [book, setBook] = useState<Book | null>(null);
   const [loading, setLoading] = useState(true);
-  const [query, setQuery] = useState("");
   const [slide, setSlide] = useState(0);
   const [ai, setAi] = useState<{ status: "idle" | "loading" | "done" | "error"; text: string; error?: string }>({
     status: "idle",
@@ -41,10 +40,11 @@ export function ScriptureReader() {
       if (!live) return;
       setBook(loaded ?? null);
       setLoading(false);
-      prefetchNeighbors(bookId);
     });
+    const cancel = whenIdle(() => prefetchNeighbors(bookId));
     return () => {
       live = false;
+      cancel();
     };
   }, [bookId]);
 
@@ -56,15 +56,12 @@ export function ScriptureReader() {
     el?.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [bookId, chapter, verseNum]);
 
-  const hits = useMemo(() => searchScripture(query, book), [query, book]);
-  const traditionalReady = chapter ? hasTraditional(chapter.verses) : false;
-
   const traditional = useMemo(() => {
     if (!chapter) return "";
     return chapter.verses
       .map((v) => {
-        const gez = v.gez ? `${v.n} ${v.gez}` : "";
-        const am = `${v.n} ${v.am}`;
+        const gez = isEthiopic(v.gez) ? `${v.n} ${v.gez}` : "";
+        const am = isEthiopic(v.am) ? `${v.n} ${v.am}` : "";
         return gez ? `${gez}\n${am}` : am;
       })
       .join("\n\n");
@@ -84,7 +81,6 @@ export function ScriptureReader() {
     setChapterNum(ch);
     setVerseNum(nextVerse);
     setAi({ status: "idle", text: "" });
-    setQuery("");
     if (nextVerse <= 1) {
       requestAnimationFrame(() => readerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
     }
@@ -110,7 +106,6 @@ export function ScriptureReader() {
     const dy = e.clientY - touch.current.y;
     touch.current = null;
     if (Math.abs(dx) < 56 || Math.abs(dx) < Math.abs(dy) * 1.15) return;
-    // swipe/scroll right (finger moves right) → next chapter, as requested
     if (dx > 0) stepChapter(1);
     else stepChapter(-1);
   }
@@ -150,7 +145,7 @@ export function ScriptureReader() {
     }
   }
 
-  const shownLang = lang === "dual" && !traditionalReady ? "english" : lang;
+  const shownLang = lang;
   const nextMeta = neighbor(bookId, 1);
   const prevMeta = neighbor(bookId, -1);
 
@@ -191,39 +186,7 @@ export function ScriptureReader() {
       </header>
 
       <div className="sticky top-0 z-20 mt-4 rounded-xl bg-bg/95 p-3 shadow-[var(--shadow-border)] backdrop-blur-sm">
-        <label className="relative block">
-          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-subtle" />
-          <input
-            type="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search YAHUAH, Yahushua, Bereshith, light, Yohanan 1:1"
-            className="h-12 w-full rounded-lg border border-border bg-raised pl-10 pr-3 text-sm"
-            aria-label="Search scripture"
-          />
-        </label>
-        {query.trim().length >= 2 ? (
-          <ul className="mt-2 max-h-56 overflow-y-auto rounded-lg bg-surface p-1">
-            {hits.length === 0 ? (
-              <li className="px-3 py-2 text-sm text-muted">No passages match.</li>
-            ) : (
-              hits.map((hit) => (
-                <li key={`${hit.bookId}-${hit.chapter}-${hit.verse}`}>
-                  <button
-                    type="button"
-                    className="flex w-full flex-col rounded-md px-3 py-2 text-left hover:bg-raised"
-                    onClick={() => goTo(hit.bookId, hit.chapter, hit.verse)}
-                  >
-                    <span className="text-sm">
-                      {hit.bookEn} {hit.chapter}:{hit.verse}
-                    </span>
-                    <span className="line-clamp-2 text-xs text-muted">{hit.preview}</span>
-                  </button>
-                </li>
-              ))
-            )}
-          </ul>
-        ) : null}
+        <ScriptureSearch book={book} onJump={goTo} />
 
         <div className="mt-3 grid grid-cols-[auto_1fr_auto_auto] gap-2">
           <button type="button" className="nav-chip" aria-label="Previous chapter" onClick={() => stepChapter(-1)}>
@@ -419,7 +382,81 @@ export function ScriptureReader() {
   );
 }
 
-function VerseCol({
+function ScriptureSearch({
+  book,
+  onJump,
+}: {
+  book: Book | null;
+  onJump: (bookId: string, chapter: number, verse: number) => void;
+}) {
+  const [query, setQuery] = useState("");
+  const [debounced, setDebounced] = useState("");
+  useEffect(() => {
+    const t = window.setTimeout(() => setDebounced(query), 220);
+    return () => window.clearTimeout(t);
+  }, [query]);
+  const hits = useMemo(() => searchScripture(debounced, book), [debounced, book]);
+
+  return (
+    <>
+      <label className="relative block">
+        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-subtle" />
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search YAHUAH, Yahushua, Bereshith, light, Yohanan 1:1"
+          className="h-12 w-full rounded-lg border border-border bg-raised pl-10 pr-3 text-sm"
+          aria-label="Search scripture"
+        />
+      </label>
+      {debounced.trim().length >= 2 ? (
+        <ul className="mt-2 max-h-56 overflow-y-auto rounded-lg bg-surface p-1">
+          {hits.length === 0 ? (
+            <li className="px-3 py-2 text-sm text-muted">No passages match.</li>
+          ) : (
+            hits.map((hit) => (
+              <li key={`${hit.bookId}-${hit.chapter}-${hit.verse}`}>
+                <button
+                  type="button"
+                  className="flex w-full flex-col rounded-md px-3 py-2 text-left hover:bg-raised"
+                  onClick={() => {
+                    setQuery("");
+                    setDebounced("");
+                    onJump(hit.bookId, hit.chapter, hit.verse);
+                  }}
+                >
+                  <span className="text-sm">
+                    {hit.bookEn} {hit.chapter}:{hit.verse}
+                  </span>
+                  <span className="line-clamp-2 text-xs text-muted">{hit.preview}</span>
+                </button>
+              </li>
+            ))
+          )}
+        </ul>
+      ) : null}
+    </>
+  );
+}
+
+function traditionalBody(v: Verse) {
+  const gez = isEthiopic(v.gez) ? v.gez : "";
+  const am = isEthiopic(v.am) ? v.am : "";
+  if (gez && am && am !== gez) {
+    return (
+      <>
+        <span className="block">{gez}</span>
+        <span className="mt-1 block text-muted">{am}</span>
+      </>
+    );
+  }
+  if (gez) return gez;
+  if (am) return am;
+  return <span className="text-muted">ባህላዊው ጽሑፍ ለዚህ ቍጥር ገና አልተቀመጠም።</span>;
+}
+
+const VerseCol = memo(function VerseCol({
   bookId,
   chapter,
   verses,
@@ -447,27 +484,14 @@ function VerseCol({
           id={anchor ? `v-${bookId}-${chapter}-${v.n}` : undefined}
           onClick={() => onSelect(v.n)}
           className={cn(
-            "cursor-pointer rounded-lg px-2 py-2 text-base leading-relaxed",
+            "mazhaf-verse cursor-pointer rounded-lg px-2 py-2 text-base leading-relaxed",
             active === v.n ? "bg-raised ring-1 ring-accent/50" : "hover:bg-raised/60",
           )}
         >
           <span className="mr-2 text-xs tabular-nums text-subtle">{v.n}</span>
-          {side === "english" ? (
-            <span>{v.en}</span>
-          ) : (
-            <span className="font-ethiopic">
-              {v.gez ? (
-                <>
-                  <span className="block">{v.gez}</span>
-                  <span className="mt-1 block text-muted">{v.am}</span>
-                </>
-              ) : (
-                v.am
-              )}
-            </span>
-          )}
+          {side === "english" ? <span>{v.en}</span> : <span className="font-ethiopic">{traditionalBody(v)}</span>}
         </p>
       ))}
     </div>
   );
-}
+});

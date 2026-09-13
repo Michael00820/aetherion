@@ -21,29 +21,33 @@ const loaders: Record<PanelId, () => Promise<ComponentType>> = {
   scripture: () => import("@/components/bible/scripture-reader").then((m) => m.ScriptureReader),
 };
 
+const paneCache: Partial<Record<PanelId, ComponentType>> = {};
+
 export function AppShell() {
   const panel = useAppStore((s) => s.panel);
   const setPanel = useAppStore((s) => s.setPanel);
   const themeMode = useAppStore((s) => s.themeMode);
   const setThemeMode = useAppStore((s) => s.setThemeMode);
   const { resolved } = useTheme();
-  const [clock, setClock] = useState(() => new Date());
-  const [panes, setPanes] = useState<Partial<Record<PanelId, ComponentType>>>({});
+  const [, setReady] = useState(0);
 
   useEffect(() => {
     void bootNativeShell();
-    const id = window.setInterval(() => setClock(new Date()), 1000);
-    return () => window.clearInterval(id);
   }, []);
 
   useEffect(() => {
+    if (paneCache[panel]) return;
+    let live = true;
     void loaders[panel]().then((C) => {
-      setPanes((s) => (s[panel] ? s : { ...s, [panel]: C }));
+      paneCache[panel] = C;
+      if (live) setReady((n) => n + 1);
     });
+    return () => {
+      live = false;
+    };
   }, [panel]);
 
-  const eth = dateToEthiopian(clock);
-  const month = MONTHS[eth.month - 1];
+  const Pane = paneCache[panel];
 
   function cycleTheme() {
     const next = themeMode === "auto" ? "gold" : themeMode === "gold" ? "silver" : "auto";
@@ -70,7 +74,7 @@ export function AppShell() {
               type="button"
               onClick={() => setPanel(item.id)}
               className={cn(
-                "flex h-11 items-center gap-2 rounded-lg px-3 text-sm transition-colors duration-150",
+                "flex h-11 items-center gap-2 rounded-lg px-3 text-sm transition-[color,background-color] duration-150",
                 panel === item.id ? "bg-accent text-accent-fg" : "text-muted hover:bg-raised hover:text-fg",
               )}
             >
@@ -81,12 +85,7 @@ export function AppShell() {
         </nav>
 
         <div className="ml-auto flex items-center gap-2 md:ml-3">
-          <div className="hidden text-right sm:block">
-            <p className="font-ethiopic text-sm leading-none">{month?.amharic} {eth.day}</p>
-            <p className="mt-1 text-[11px] tabular-nums text-subtle">
-              {formatEthiopianTime(clock)} · {formatEthiopian(eth)}
-            </p>
-          </div>
+          <HeaderClock />
           <Button variant="outline" size="icon" onClick={cycleTheme} aria-label="Cycle theme">
             {themeMode === "auto" ? (
               resolved === "gold" ? <Sun className="size-4" /> : <Moon className="size-4" />
@@ -101,31 +100,21 @@ export function AppShell() {
 
       <main className="flex min-h-0 flex-1 flex-col p-3 pb-[4.75rem] md:p-4 md:pb-4">
         <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
-          {NAV.map((item) => {
-            const Pane = panes[item.id];
-            const on = panel === item.id;
-            if (!Pane && on) {
-              return (
-                <div key={item.id} className="flex flex-1 items-center justify-center text-muted">
-                  Loading {item.label}…
-                </div>
-              );
-            }
-            if (!Pane) return null;
-            return (
-              <div
-                key={item.id}
-                className={cn(
-                  "pane-scroll min-h-0 flex-1 flex-col",
-                  on ? "flex" : "hidden",
-                  item.id === "orbits" ? "overflow-hidden" : "overflow-y-auto",
-                )}
-                hidden={!on}
-              >
-                <Pane />
-              </div>
-            );
-          })}
+          {Pane ? (
+            <div
+              key={panel}
+              className={cn(
+                "pane-scroll flex min-h-0 flex-1 flex-col",
+                panel === "orbits" ? "overflow-hidden" : "overflow-y-auto",
+              )}
+            >
+              <Pane />
+            </div>
+          ) : (
+            <div className="flex flex-1 items-center justify-center text-muted">
+              Loading {NAV.find((n) => n.id === panel)?.label}…
+            </div>
+          )}
         </div>
       </main>
 
@@ -149,6 +138,26 @@ export function AppShell() {
           </button>
         ))}
       </nav>
+    </div>
+  );
+}
+
+function HeaderClock() {
+  const [clock, setClock] = useState(() => new Date());
+  useEffect(() => {
+    const id = window.setInterval(() => setClock(new Date()), 1000);
+    return () => window.clearInterval(id);
+  }, []);
+  const eth = dateToEthiopian(clock);
+  const month = MONTHS[eth.month - 1];
+  return (
+    <div className="hidden text-right sm:block">
+      <p className="font-ethiopic text-sm leading-none">
+        {month?.amharic} {eth.day}
+      </p>
+      <p className="mt-1 text-[11px] tabular-nums text-subtle">
+        {formatEthiopianTime(clock)} · {formatEthiopian(eth)}
+      </p>
     </div>
   );
 }

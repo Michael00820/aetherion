@@ -25,18 +25,15 @@ export function OrbitsPanel() {
 
   useEffect(() => {
     let live = true;
-    const start = window.setTimeout(() => {
-      void import("./solar-scene")
-        .then((m) => {
-          if (live) setScene(() => m.SolarScene);
-        })
-        .catch(() => {
-          if (live) setFailed(true);
-        });
-    }, 40);
+    void import("./solar-scene")
+      .then((m) => {
+        if (live) setScene(() => m.SolarScene);
+      })
+      .catch(() => {
+        if (live) setFailed(true);
+      });
     return () => {
       live = false;
-      window.clearTimeout(start);
     };
   }, []);
 

@@ -46,7 +46,11 @@ export function PlanetaryHours() {
   const [locating, setLocating] = useState(false);
 
   useEffect(() => {
-    const id = window.setInterval(() => setNow(new Date()), 1000);
+    const tick = () => {
+      if (typeof document !== "undefined" && document.hidden) return;
+      setNow(new Date());
+    };
+    const id = window.setInterval(tick, 1000);
     return () => window.clearInterval(id);
   }, []);
 

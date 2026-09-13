@@ -30,3 +30,6 @@ android/*.jks
 android/*.keystore
 android/.idea
 *.iml
+
+.grok/skills/
+.grok/references/

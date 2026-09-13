@@ -3,8 +3,17 @@ import type { Book, Verse } from "./types";
 
 const cache = new Map<string, Book>();
 const inflight = new Map<string, Promise<Book | undefined>>();
+const haystack = new WeakMap<Verse, string>();
 
 export type LoadedBook = Book;
+
+function verseHay(verse: Verse): string {
+  const hit = haystack.get(verse);
+  if (hit !== undefined) return hit;
+  const hay = `${verse.en} ${verse.am} ${verse.gez ?? ""}`.toLowerCase();
+  haystack.set(verse, hay);
+  return hay;
+}
 
 export async function loadBook(id: string): Promise<Book | undefined> {
   const cached = cache.get(id);
@@ -49,6 +58,17 @@ export function prefetchNeighbors(id: string) {
   prefetchBook(neighbor(id, -1).id);
 }
 
+export function whenIdle(fn: () => void): () => void {
+  const ric = (window as Window & { requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number }).requestIdleCallback;
+  const cic = (window as Window & { cancelIdleCallback?: (id: number) => void }).cancelIdleCallback;
+  if (typeof ric === "function") {
+    const id = ric(fn, { timeout: 1500 });
+    return () => cic?.(id);
+  }
+  const t = window.setTimeout(fn, 450);
+  return () => window.clearTimeout(t);
+}
+
 export type ScriptureHit = {
   bookId: string;
   bookEn: string;
@@ -58,7 +78,7 @@ export type ScriptureHit = {
   preview: string;
 };
 
-export function searchScripture(query: string, current?: Book | null, limit = 48): ScriptureHit[] {
+export function searchScripture(query: string, current?: Book | null, limit = 24): ScriptureHit[] {
   const raw = query.trim();
   if (raw.length < 2) return [];
   const q = raw.toLowerCase();
@@ -107,8 +127,7 @@ export function searchScripture(query: string, current?: Book | null, limit = 48
   const scan = (book: Book) => {
     for (const chapter of book.chapters) {
       for (const verse of chapter.verses) {
-        const hay = `${verse.en} ${verse.am} ${verse.gez ?? ""}`.toLowerCase();
-        if (!hay.includes(q)) continue;
+        if (!verseHay(verse).includes(q)) continue;
         push({
           bookId: book.id,
           bookEn: displayEn(book),
@@ -123,16 +142,27 @@ export function searchScripture(query: string, current?: Book | null, limit = 48
   };
 
   if (current) scan(current);
-  for (const book of cache.values()) {
-    if (book.id === current?.id) continue;
-    scan(book);
-    if (hits.length >= limit) break;
+  if (hits.length >= limit) return hits.slice(0, limit);
+
+  // Other cached books only after 3 characters, and never more than two extras.
+  if (raw.length >= 3) {
+    let extra = 0;
+    for (const book of cache.values()) {
+      if (book.id === current?.id) continue;
+      scan(book);
+      extra += 1;
+      if (hits.length >= limit || extra >= 2) break;
+    }
   }
   return hits.slice(0, limit);
 }
 
+export function isEthiopic(text?: string | null): boolean {
+  return Boolean(text && /[\u1200-\u137F]/.test(text));
+}
+
 export function hasTraditional(verses: Verse[]): boolean {
-  return verses.some((v) => Boolean(v.gez) || (v.am && v.am !== v.en));
+  return verses.some((v) => isEthiopic(v.gez) || isEthiopic(v.am));
 }
 
 export function nextLocation(

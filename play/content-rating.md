@@ -11,6 +11,6 @@ All answers **No** / **None** unless noted.
 - Gambling: none
 - Miscellaneous: not a news app, not a browser, not a user-generated-content host
 - Target age: **Everyone**
-- Ads: **No ads**
+- Ads: **Yes** — Google AdMob interstitials between rooms and chapters. Not directed at children.
 
 Expected rating: **Everyone** / PEGI 3.

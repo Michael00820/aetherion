@@ -1,1 +1,0 @@
-import{x as e}from"./index.android-5gr_DD84.js";var t=e(`chevron-right`,[[`path`,{d:`m9 18 6-6-6-6`,key:`mthhwq`}]]);export{t};

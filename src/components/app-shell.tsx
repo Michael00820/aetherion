@@ -5,7 +5,9 @@ import { useAppStore, type PanelId } from "@/lib/store";
 import { useTheme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import { bootNativeShell } from "@/lib/native";
+import { afterAd, bootAds } from "@/lib/ads";
 import { Button } from "@/components/ui/button";
+import { AdGate } from "@/components/ads/ad-gate";
 
 const NAV: { id: PanelId; label: string; am: string; icon: typeof Orbit }[] = [
   { id: "orbits", label: "Orbits", am: "ዑደት", icon: Orbit },
@@ -33,6 +35,7 @@ export function AppShell() {
 
   useEffect(() => {
     void bootNativeShell();
+    bootAds();
   }, []);
 
   useEffect(() => {
@@ -49,6 +52,11 @@ export function AppShell() {
 
   const Pane = paneCache[panel];
 
+  function requestPanel(id: PanelId) {
+    if (id === panel) return;
+    afterAd("tab", () => setPanel(id));
+  }
+
   function cycleTheme() {
     const next = themeMode === "auto" ? "gold" : themeMode === "gold" ? "silver" : "auto";
     setThemeMode(next);
@@ -56,6 +64,7 @@ export function AppShell() {
 
   return (
     <div className="starfield flex h-dvh max-h-dvh flex-col overflow-hidden text-fg">
+      <AdGate />
       <header className="flex h-14 shrink-0 items-center gap-3 border-b border-border px-3 sm:h-16 sm:px-5">
         <div className="flex min-w-0 items-center gap-3">
           <Sigil gold={resolved === "gold"} />
@@ -72,7 +81,7 @@ export function AppShell() {
             <button
               key={item.id}
               type="button"
-              onClick={() => setPanel(item.id)}
+              onClick={() => requestPanel(item.id)}
               className={cn(
                 "flex h-11 items-center gap-2 rounded-lg px-3 text-sm transition-[color,background-color] duration-150",
                 panel === item.id ? "bg-accent text-accent-fg" : "text-muted hover:bg-raised hover:text-fg",
@@ -127,7 +136,7 @@ export function AppShell() {
           <button
             key={item.id}
             type="button"
-            onClick={() => setPanel(item.id)}
+            onClick={() => requestPanel(item.id)}
             className={cn(
               "flex h-12 flex-1 flex-col items-center justify-center gap-0.5 rounded-lg text-[11px]",
               panel === item.id ? "text-accent" : "text-muted",

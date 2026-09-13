@@ -10,9 +10,9 @@ Aetherion is a pocket observatory for the Ethiopian Orthodox calendar, unequal p
 • Orbits — pinch, pan, and tap a world to pull it from the sky.
 • Zemen — the 13-month Ethiopian year beside the Gregorian dates, with feast notes.
 • Hours — twelve unequal hours of day from your sunrise, twelve of night from sunset, in the Chaldean order.
-• Scripture — the Tewahedo library. Open any book at chapter 1. Swipe between chapters. Search Ge'ez, Amharic, and English.
+• Scripture — the Tewahedo library. Traditional pages are Ge'ez and Amharic. English restores the Name of the Creator as YAHUAH and the Son as Yahushua. Open any book at chapter 1. Swipe between chapters. Search in Ge'ez, Amharic, and English.
 
-Themes follow the sun: gold by day, silver by night. Location is optional and stays on the device, used only to time the local horizon. No account. No ads.
+Themes follow the sun: gold by day, silver by night. Location is optional and stays on the device, used only to time the local horizon. No account. Short video ads may appear when you change rooms or scripture chapters.
 
 Category
 Books & Reference

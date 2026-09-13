@@ -5,6 +5,7 @@ import { isEthiopic, loadBook, nextLocation, prefetchNeighbors, searchScripture,
 import type { Book, Verse } from "@/lib/bible/types";
 import { SECTION_LABELS } from "@/lib/bible/types";
 import { translateChapter } from "@/lib/translate";
+import { afterAd } from "@/lib/ads";
 import { useAppStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -75,15 +76,22 @@ export function ScriptureReader() {
   function goTo(nextBook: string, nextChapter: number, nextVerse = 1, dir: -1 | 0 | 1 = 0) {
     const nextMeta = getCanon(nextBook);
     const ch = Math.min(Math.max(1, nextChapter), nextMeta?.chapters ?? 1);
-    jump.current = nextVerse > 1;
-    if (dir) setSlide(dir);
-    setBookId(nextBook);
-    setChapterNum(ch);
-    setVerseNum(nextVerse);
-    setAi({ status: "idle", text: "" });
-    if (nextVerse <= 1) {
-      requestAnimationFrame(() => readerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+    const apply = () => {
+      jump.current = nextVerse > 1;
+      if (dir) setSlide(dir);
+      setBookId(nextBook);
+      setChapterNum(ch);
+      setVerseNum(nextVerse);
+      setAi({ status: "idle", text: "" });
+      if (nextVerse <= 1) {
+        requestAnimationFrame(() => readerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+      }
+    };
+    if (nextBook === bookId && ch === chapterNum) {
+      apply();
+      return;
     }
+    afterAd("chapter", apply);
   }
 
   function stepChapter(dir: -1 | 1) {

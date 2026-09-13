@@ -26,6 +26,7 @@
     "android:apk": "npm run android:web && npx cap sync android && cd android && ./gradlew assembleRelease"
   },
   "dependencies": {
+    "@capacitor-community/admob": "^8.1.0",
     "@capacitor/app": "^8.1.1",
     "@capacitor/core": "^8.5.1",
     "@capacitor/geolocation": "^8.2.2",

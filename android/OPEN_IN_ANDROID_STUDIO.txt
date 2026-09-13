@@ -1,0 +1,10 @@
+Open THIS android folder in Android Studio (File → Open → android).
+
+Do not open the repo root as the Gradle project.
+
+Then follow ANDROID.md (build) and play/PLAY_CONSOLE.md (publish).
+
+Package: com.aetherion.observatory
+First signed file Play wants: android/app/build/outputs/bundle/release/app-release.aab
+You must create the upload keystore on your machine (scripts/create-upload-keystore.sh).
+Never put the .jks in email, git, or Drive public folders.

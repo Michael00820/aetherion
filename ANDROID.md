@@ -1,6 +1,6 @@
 # Aetherion — Android Studio and Play Console
 
-Open the **`android`** folder in Android Studio (not the repo root).
+Open the **`android`** folder in Android Studio (not the repo root). **Publish walkthrough:** [play/PLAY_CONSOLE.md](play/PLAY_CONSOLE.md).
 
 | | |
 | --- | --- |
@@ -129,9 +129,11 @@ Play will reject the app without a public HTTP(S) URL.
 
 ## 7. Permissions (what Play will ask)
 
-- `INTERNET` — optional chapter translation only. Scripture, calendar, and orbits ship in the bundle.
-- `ACCESS_COARSE_LOCATION` / `ACCESS_FINE_LOCATION` — optional “Your horizon”. Not required to install. Declare **approximate + precise location**, collected, app functionality, **not** shared, optional.
-- Advertising ID is **removed** from the merged manifest (`tools:node="remove"`). Data safety: no advertising ID.
+- `INTERNET` — ads, plus optional chapter translation. Scripture, calendar, and orbits ship in the bundle.
+- `ACCESS_COARSE_LOCATION` / `ACCESS_FINE_LOCATION` — optional “Your horizon”. Not required to install. Declare **approximate + precise location**, collected, app functionality; approximate location may also be shared with AdMob if granted.
+- `AD_ID` — required for Google AdMob. Data safety: Advertising ID **Yes**, shared with Google.
+
+AdMob setup: [play/admob-setup.md](play/admob-setup.md). Test IDs ship until you paste production `ca-app-pub-` values into `src/lib/ads-config.ts` and `android/app/src/main/res/values/strings.xml`.
 
 ---
 

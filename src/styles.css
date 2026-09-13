@@ -647,3 +647,85 @@ html[data-theme="silver"] .zemen-page {
   from { opacity: 0.4; transform: translateX(-28px); }
   to { opacity: 1; transform: translateX(0); }
 }
+
+.ad-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  background:
+    radial-gradient(ellipse at 50% 20%, color-mix(in oklab, var(--accent) 22%, transparent), transparent 55%),
+    color-mix(in oklab, var(--bg) 92%, black);
+}
+
+.ad-gate-card {
+  width: min(26rem, 100%);
+  border-radius: 1.25rem;
+  padding: 1.75rem 1.5rem 1.4rem;
+  background: var(--surface);
+  box-shadow: var(--shadow-border-hover);
+  text-align: center;
+}
+
+.ad-gate-kicker {
+  margin: 0;
+  font-size: 0.68rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--subtle);
+}
+
+.ad-gate-orb {
+  width: 4.5rem;
+  height: 4.5rem;
+  margin: 1.15rem auto 1rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklab, var(--accent) 55%, transparent);
+  background:
+    radial-gradient(circle at 35% 30%, var(--accent), transparent 55%),
+    var(--raised);
+  box-shadow: 0 0 28px var(--glow);
+  animation: ad-gate-pulse 1.4s ease-in-out infinite;
+}
+
+.ad-gate-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  line-height: 1.15;
+}
+
+.ad-gate-copy {
+  margin: 0.55rem 0 1.15rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.ad-gate-track {
+  height: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--raised);
+}
+
+.ad-gate-fill {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--accent);
+  animation-name: ad-gate-fill;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+@keyframes ad-gate-fill {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@keyframes ad-gate-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.06); opacity: 0.85; }
+}
